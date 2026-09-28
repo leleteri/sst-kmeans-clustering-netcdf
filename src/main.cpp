@@ -1,5 +1,6 @@
 #include "arguments.hpp"
 #include "csv_write.hpp"
+#include "kmeans.hpp"
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
