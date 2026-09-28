@@ -2,6 +2,8 @@
 #include <cstdlib>
 #include <iostream>
 #include <netcdf>
+#include <string>
+#include <vector>
 
 int runCluster(const std::vector<std::string> &args) {
   ClusterOptions opts;

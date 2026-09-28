@@ -4,9 +4,8 @@
 #include <filesystem>
 #include <vector>
 
-namespace fs = std::filesystem;
-
-bool validateGrid(const std::vector<fs::path> &files, bool verbose,
+bool validateGrid(const std::vector<std::filesystem::path> &files, bool verbose,
                   double tolerance = 1e-9);
-bool validateStaticMask(const std::vector<fs::path> &files, bool verbose);
+bool validateStaticMask(const std::vector<std::filesystem::path> &files,
+                        bool verbose);
 #endif

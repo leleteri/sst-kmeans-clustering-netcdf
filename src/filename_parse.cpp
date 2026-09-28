@@ -1,7 +1,11 @@
 #include "filename_parse.hpp"
+#include <chrono>
+#include <filesystem>
 #include <iostream>
 #include <optional>
+#include <vector>
 
+namespace fs = std::filesystem;
 namespace df = std::chrono; // date format
 
 std::optional<df::year_month_day>

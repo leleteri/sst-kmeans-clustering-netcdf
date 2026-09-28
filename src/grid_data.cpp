@@ -1,7 +1,11 @@
 #include "grid_data.hpp"
+#include <filesystem>
 #include <iostream>
 #include <netcdf>
+#include <optional>
 #include <vector>
+
+namespace fs = std::filesystem;
 
 std::optional<GridInfo> readGridInfo(const fs::path &input_path, bool verbose) {
   try {

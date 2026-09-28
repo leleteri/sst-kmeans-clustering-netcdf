@@ -6,6 +6,8 @@
 #include <cstdlib>
 #include <iostream>
 #include <netcdf>
+#include <string>
+#include <vector>
 
 int runBuild(const std::vector<std::string> &args) {
   BuildOptions opts;

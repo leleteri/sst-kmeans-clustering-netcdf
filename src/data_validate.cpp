@@ -1,6 +1,10 @@
 #include "grid_data.hpp"
 #include <cmath>
+#include <filesystem>
 #include <iostream>
+#include <vector>
+
+namespace fs = std::filesystem;
 
 static bool sameAxis(const std::vector<double> &a, const std::vector<double> &b,
                      double tolerance) {

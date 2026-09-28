@@ -6,20 +6,17 @@
 #include <optional>
 #include <vector>
 
-namespace fs = std::filesystem;
-namespace df = std::chrono;
-
 struct TimeAxis {
-  std::vector<fs::path> files;
+  std::vector<std::filesystem::path> files;
   std::vector<long> dayOffsets;
 };
 
-std::optional<df::year_month_day>
-parseDateFromFilename(const fs::path &input_path, bool verbose);
-long daysSinceEpoch(const df::year_month_day &year_month_day);
-std::vector<fs::path> collectNcFiles(const std::vector<std::string> &args,
-                                     bool verbose);
-std::optional<TimeAxis> buildTimeAxis(const std::vector<fs::path> &files,
-                                      bool verbose);
+std::optional<std::chrono::year_month_day>
+parseDateFromFilename(const std::filesystem::path &input_path, bool verbose);
+long daysSinceEpoch(const std::chrono::year_month_day &year_month_day);
+std::vector<std::filesystem::path>
+collectNcFiles(const std::vector<std::string> &args, bool verbose);
+std::optional<TimeAxis>
+buildTimeAxis(const std::vector<std::filesystem::path> &files, bool verbose);
 
 #endif

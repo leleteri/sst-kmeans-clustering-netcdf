@@ -5,8 +5,6 @@
 #include <optional>
 #include <vector>
 
-namespace fs = std::filesystem;
-
 struct LatLon {
   std::vector<double> lats;
   std::vector<double> lons;
@@ -18,11 +16,14 @@ struct GridInfo {
   float fill_value;
 };
 
-std::optional<GridInfo> readGridInfo(const fs::path &input_path, bool verbose);
+std::optional<GridInfo> readGridInfo(const std::filesystem::path &input_path,
+                                     bool verbose);
 std::optional<std::vector<float>>
-readSstValues(const fs::path &input_path, size_t expected_size, bool verbose);
-std::optional<LatLon> readLatLon(const fs::path &input_path, bool verbose);
-std::optional<std::vector<bool>> readOceanMask(const fs::path &input_path,
-                                               bool verbose);
+readSstValues(const std::filesystem::path &input_path, size_t expected_size,
+              bool verbose);
+std::optional<LatLon> readLatLon(const std::filesystem::path &input_path,
+                                 bool verbose);
+std::optional<std::vector<bool>>
+readOceanMask(const std::filesystem::path &input_path, bool verbose);
 
 #endif

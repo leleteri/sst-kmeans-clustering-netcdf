@@ -1,9 +1,12 @@
 #include "dataset_io.hpp"
 #include <algorithm>
+#include <filesystem>
 #include <iostream>
 #include <limits>
 #include <netcdf>
 #include <vector>
+
+namespace fs = std::filesystem;
 
 bool writeDatasetNc(const SstDataset &dataset, const fs::path &output_path,
                     bool verbose) {

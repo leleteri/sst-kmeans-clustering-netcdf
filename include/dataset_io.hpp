@@ -4,9 +4,7 @@
 #include "sst_data.hpp"
 #include <filesystem>
 
-namespace fs = std::filesystem;
-
-bool writeDatasetNc(const SstDataset &dataset, const fs::path &output_path,
-                    bool verbose);
+bool writeDatasetNc(const SstDataset &dataset,
+                    const std::filesystem::path &output_path, bool verbose);
 
 #endif

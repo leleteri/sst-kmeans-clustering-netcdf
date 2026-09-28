@@ -1,5 +1,7 @@
 #include "arguments.hpp"
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 static const std::string &requireValue(const std::vector<std::string> &args,
                                        size_t &i) {
