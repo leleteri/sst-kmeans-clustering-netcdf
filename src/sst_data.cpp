@@ -3,6 +3,7 @@
 #include "grid_data.hpp"
 #include <algorithm>
 #include <cstdint>
+#include <iostream>
 #include <limits>
 #include <netcdf>
 #include <optional>
@@ -13,7 +14,7 @@ std::optional<SstDataset> buildSstDataSet(const GridInfo &grid,
   size_t num_rows =
       std::count(grid.oceanMask.begin(), grid.oceanMask.end(), true);
   size_t num_days = time_axis.dayOffsets.size();
-  size_t grid_size = grid.lats.size() * grid.lons.size();
+  size_t grid_size = grid.coords.lats.size() * grid.coords.lons.size();
 
   SstDataset dataset;
   dataset.grid = grid;
@@ -32,8 +33,7 @@ std::optional<SstDataset> buildSstDataSet(const GridInfo &grid,
   for (size_t day = 0; day < time_axis.files.size(); ++day) {
     auto sstOpt = readSstValues(time_axis.files[day], grid_size);
     if (!sstOpt) {
-      std::cerr << "Failed to read " << time_axis.files[day]
-                << ", skipping.\nn";
+      std::cerr << "Failed to read " << time_axis.files[day] << ", skipping.\n";
       continue;
     }
     const std::vector<float> &sst = *sstOpt;

@@ -1,5 +1,5 @@
 #include "grid_data.hpp"
-#include "exceptions.hpp"
+#include <iostream>
 #include <netcdf>
 #include <vector>
 
@@ -10,9 +10,9 @@ std::optional<GridInfo> readGridInfo(const fs::path &input_path) {
     netCDF::NcVar lon_var = data_file.getVar("longitude");
     netCDF::NcVar sst_var = data_file.getVar("analysed_sst");
 
-    if (sst_var.isNull()) {
+    if (lat_var.isNull() || lon_var.isNull() || sst_var.isNull()) {
       std::cerr << "Error [" << input_path.filename()
-                << "]: Required variables (analysed_sst) "
+                << "]: Required variables (latitude, longitude, analysed_sst) "
                    "not found.\n";
       return std::nullopt;
     }
@@ -52,16 +52,24 @@ std::optional<std::vector<float>> readSstValues(const fs::path &input_path,
   try {
     netCDF::NcFile data_file(input_path.string(), netCDF::NcFile::read);
     netCDF::NcVar sst_var = data_file.getVar("analysed_sst");
+
     if (sst_var.isNull()) {
       std::cerr << "Error [" << input_path.filename()
                 << "]: analysed_sst not found.\n";
       return std::nullopt;
     }
 
+    size_t num_lats = data_file.getDim("latitude").getSize();
+    size_t num_lons = data_file.getDim("longitude").getSize();
+    if (num_lats * num_lons != expectedSize) {
+      std::cerr << "Grid size mismatch in " << input_path.filename() << "\n";
+      return std::nullopt;
+    }
+
     std::vector<float> sst(expectedSize);
     std::vector<size_t> start = {0, 0, 0};
-    std::vector<size_t> count = {1, /* num_lats */ 0,
-                                 /* num_lons */ 0}; // fill from grid dims
+    std::vector<size_t> count = {1, num_lats, num_lons};
+
     sst_var.getVar(start, count, sst.data());
     return sst;
   } catch (const netCDF::exceptions::NcException &e) {

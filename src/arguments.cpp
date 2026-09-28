@@ -1,8 +1,13 @@
 #include "arguments.hpp"
+#include <iostream>
 #include <span>
 #include <stdexcept>
 
 Config config;
+
+static std::string usage =
+    "Usage: build-sst-dataset [OPTION] [PATH]\n\nFor more "
+    "information, try '-h' or '--help'";
 
 std::vector<std::string> parseArgs(int argc, char **argv) {
   const std::span<char *> args{argv, static_cast<std::size_t>(argc)};
@@ -17,24 +22,20 @@ std::vector<std::string> parseArgs(int argc, char **argv) {
 
     if (arg == "-v" || arg == "--verbose") {
       config.verbose = true;
-    } else if (arg == "--show-missing") {
-      config.showMissingValues = true;
-    } else if (arg == "--export-as-csv") {
-      config.outputCsv = true;
-    } else if (arg == "-m" || arg == "--method") {
+    } else if (arg == "-l" || arg == "--limit") {
       if (i + 1 >= args.size())
-        throw std::runtime_error(arg + " requires a value");
-      // Need to implement validation later
-      config.method = args[++i];
+        throw std::runtime_error("--limit requires a value");
+      config.limit = std::stoul(argv[++i]);
+    } else if (arg == "-o" || arg == "--output") {
+      if (i + 1 >= args.size())
+        throw std::runtime_error("--output requires a value");
+      config.output = args[++i];
     } else if (arg.starts_with("--")) {
-      throw std::runtime_error("Unknown option: " + arg);
+      throw std::runtime_error("Unknown argument: " + arg);
     } else {
       positional.push_back(arg);
     }
   }
-
-  if (config.method.empty())
-    throw std::runtime_error("-m or --method is required");
 
   return positional;
 }

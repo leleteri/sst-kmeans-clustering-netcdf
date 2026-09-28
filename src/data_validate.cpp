@@ -1,6 +1,6 @@
 #include "arguments.hpp"
 #include "grid_data.hpp"
-#include <cstdlib>
+#include <cmath>
 #include <iostream>
 
 static bool sameAxis(const std::vector<double> &a, const std::vector<double> &b,
@@ -13,7 +13,7 @@ static bool sameAxis(const std::vector<double> &a, const std::vector<double> &b,
   return true;
 }
 
-bool validateGrid(const std::vector<fs::path> &files, double tolerance = 1e-9) {
+bool validateGrid(const std::vector<fs::path> &files, double tolerance) {
   if (files.empty()) {
     std::cerr << "No files given.\n";
     return false;
@@ -84,6 +84,7 @@ bool validateStaticMask(const std::vector<fs::path> &files) {
     auto mask_opt = readOceanMask(files[i]);
     if (!mask_opt) {
       std::cerr << "Skipping unreadable file: " << files[i] << "\n";
+      all_match = false;
       continue;
     }
     const std::vector<bool> &mask = *mask_opt;
@@ -96,8 +97,8 @@ bool validateStaticMask(const std::vector<fs::path> &files) {
     }
 
     size_t diff_count = 0;
-    for (size_t i = 0; i < baseline.size(); ++i) {
-      if (mask[i] != baseline[i])
+    for (size_t j = 0; j < baseline.size(); ++j) {
+      if (mask[j] != baseline[j])
         ++diff_count;
     }
 

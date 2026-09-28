@@ -14,8 +14,8 @@ struct TimeAxis {
   std::vector<long> dayOffsets;
 };
 
-std::optional<std::chrono::year_month_day>
-parseDataFromFileName(const fs::path input_path);
-long daySinceEpoch(const df::year_month_day &year_month_day);
+std::optional<df::year_month_day>
+parseDateFromFilename(const fs::path &input_path);
+long daysSinceEpoch(const df::year_month_day &year_month_day);
 
 #endif

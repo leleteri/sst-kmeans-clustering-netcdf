@@ -6,9 +6,8 @@
 
 struct Config {
   bool verbose = false;
-  bool showMissingValues = false;
-  bool outputCsv = false;
-  std::string method;
+  size_t limit = 0;
+  std::string output = "sst_dataset.nc";
 };
 
 extern Config config;
