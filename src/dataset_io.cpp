@@ -5,7 +5,8 @@
 #include <netcdf>
 #include <vector>
 
-bool writeDatasetNc(const SstDataset &dataset, const fs::path &output_path) {
+bool writeDatasetNc(const SstDataset &dataset, const fs::path &output_path,
+                    bool verbose) {
   const std::vector<bool> &mask = dataset.grid.oceanMask;
   const size_t num_lons = dataset.grid.coords.lons.size();
   const size_t num_days = dataset.time.dayOffsets.size();
@@ -13,8 +14,9 @@ bool writeDatasetNc(const SstDataset &dataset, const fs::path &output_path) {
 
   if (num_rows == 0 || num_days == 0 ||
       dataset.matrix.size() != num_rows * num_days) {
-    std::cerr << "Cannot write dataset: matrix size does not match "
-                 "rows x days.\n";
+    if (verbose)
+      std::cerr << "Cannot write dataset: matrix size does not match "
+                   "rows x days.\n";
     return false;
   }
 
@@ -72,15 +74,18 @@ bool writeDatasetNc(const SstDataset &dataset, const fs::path &output_path) {
     sst_var.putVar(dataset.matrix.data());
 
   } catch (const netCDF::exceptions::NcException &e) {
-    std::cerr << "NetCDF write error [" << output_path << "]: " << e.what()
-              << "\n";
+    if (verbose)
+      std::cerr << "NetCDF write error [" << output_path << "]: " << e.what()
+                << "\n";
     return false;
   } catch (const std::exception &e) {
-    std::cerr << "Write error [" << output_path << "]: " << e.what() << "\n";
+    if (verbose)
+      std::cerr << "Write error [" << output_path << "]: " << e.what() << "\n";
     return false;
   }
 
-  std::cout << "Wrote " << num_rows << " x " << num_days << " dataset to "
-            << output_path << "\n";
+  if (verbose)
+    std::cout << "Wrote " << num_rows << " x " << num_days << " dataset to "
+              << output_path << "\n";
   return true;
 }

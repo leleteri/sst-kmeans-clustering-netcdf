@@ -15,7 +15,11 @@ struct TimeAxis {
 };
 
 std::optional<df::year_month_day>
-parseDateFromFilename(const fs::path &input_path);
+parseDateFromFilename(const fs::path &input_path, bool verbose);
 long daysSinceEpoch(const df::year_month_day &year_month_day);
+std::vector<fs::path> collectNcFiles(const std::vector<std::string> &args,
+                                     bool verbose);
+std::optional<TimeAxis> buildTimeAxis(const std::vector<fs::path> &files,
+                                      bool verbose);
 
 #endif

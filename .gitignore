@@ -9,10 +9,11 @@ devenv.local.yaml
 # pre-commit
 .pre-commit-config.yaml
 
-# cmake
+# cmake generated
 build/
 
 # NC data
 data/
+*.nc
 
 for-later/

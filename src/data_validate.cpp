@@ -1,4 +1,3 @@
-#include "arguments.hpp"
 #include "grid_data.hpp"
 #include <cmath>
 #include <iostream>
@@ -13,15 +12,19 @@ static bool sameAxis(const std::vector<double> &a, const std::vector<double> &b,
   return true;
 }
 
-bool validateGrid(const std::vector<fs::path> &files, double tolerance) {
+bool validateGrid(const std::vector<fs::path> &files, bool verbose,
+                  double tolerance) {
   if (files.empty()) {
-    std::cerr << "No files given.\n";
+    if (verbose)
+      std::cerr << "No files given.\n";
     return false;
   }
 
-  auto baseline_opt = readLatLon(files.front());
+  auto baseline_opt = readLatLon(files.front(), verbose);
   if (!baseline_opt) {
-    std::cerr << "Failed to read baseline mask from " << files.front() << "\n";
+    if (verbose)
+      std::cerr << "Failed to read baseline mask from " << files.front()
+                << "\n";
     return false;
   }
   const LatLon &baseline = *baseline_opt;
@@ -30,29 +33,30 @@ bool validateGrid(const std::vector<fs::path> &files, double tolerance) {
   size_t files_checked = 0;
 
   for (size_t i = 1; i < files.size(); ++i) {
-    auto grid_opt = readLatLon(files[i]);
+    auto grid_opt = readLatLon(files[i], verbose);
     if (!grid_opt) {
-      std::cerr << "Skipping unreadable file: " << files[i] << "\n";
+      if (verbose)
+        std::cerr << "Skipping unreadable file: " << files[i] << "\n";
       all_match = false;
       continue;
     }
     ++files_checked;
 
     if (!sameAxis(baseline.lats, grid_opt->lats, tolerance)) {
-      if (config.verbose)
+      if (verbose)
         std::cout << files[i].filename()
                   << ": latitude differs from baseline\n";
       all_match = false;
     }
     if (!sameAxis(baseline.lons, grid_opt->lons, tolerance)) {
-      if (config.verbose)
+      if (verbose)
         std::cout << files[i].filename()
                   << ": longitude differs from baseline\n";
       all_match = false;
     }
   }
 
-  if (config.verbose) {
+  if (verbose) {
     std::cout << "Checked " << files_checked << " file(s) against baseline ("
               << files.front().filename() << ").\n";
     std::cout << (all_match
@@ -63,15 +67,18 @@ bool validateGrid(const std::vector<fs::path> &files, double tolerance) {
   return all_match;
 }
 
-bool validateStaticMask(const std::vector<fs::path> &files) {
+bool validateStaticMask(const std::vector<fs::path> &files, bool verbose) {
   if (files.empty()) {
-    std::cerr << "No files given.\n";
+    if (verbose)
+      std::cerr << "No files given.\n";
     return false;
   }
 
-  auto baseline_opt = readOceanMask(files.front());
+  auto baseline_opt = readOceanMask(files.front(), verbose);
   if (!baseline_opt) {
-    std::cerr << "Failed to read baseline mask from " << files.front() << "\n";
+    if (verbose)
+      std::cerr << "Failed to read baseline mask from " << files.front()
+                << "\n";
     return false;
   }
 
@@ -81,9 +88,10 @@ bool validateStaticMask(const std::vector<fs::path> &files) {
   size_t files_checked = 0;
 
   for (size_t i = 1; i < files.size(); ++i) {
-    auto mask_opt = readOceanMask(files[i]);
+    auto mask_opt = readOceanMask(files[i], verbose);
     if (!mask_opt) {
-      std::cerr << "Skipping unreadable file: " << files[i] << "\n";
+      if (verbose)
+        std::cerr << "Skipping unreadable file: " << files[i] << "\n";
       all_match = false;
       continue;
     }
@@ -91,7 +99,8 @@ bool validateStaticMask(const std::vector<fs::path> &files) {
     ++files_checked;
 
     if (mask.size() != baseline.size()) {
-      std::cerr << "Grid size mismatch in " << files[i].filename() << "\n";
+      if (verbose)
+        std::cerr << "Grid size mismatch in " << files[i].filename() << "\n";
       all_match = false;
       continue;
     }
@@ -103,14 +112,14 @@ bool validateStaticMask(const std::vector<fs::path> &files) {
     }
 
     if (diff_count > 0) {
-      if (config.verbose)
+      if (verbose)
         std::cout << files[i].filename() << ": " << diff_count
                   << " pixel(s) differ from baseline mask\n";
       all_match = false;
     }
   }
 
-  if (config.verbose) {
+  if (verbose) {
     std::cout << "Checked " << files_checked << " file(s) against baseline ("
               << files.front().filename() << ").\n";
     std::cout << (all_match ? "Mask is static across all files.\n"

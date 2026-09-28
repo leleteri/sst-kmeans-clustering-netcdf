@@ -2,6 +2,7 @@
 #include "filename_parse.hpp"
 #include "grid_data.hpp"
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <iostream>
 #include <limits>
@@ -9,8 +10,8 @@
 #include <optional>
 #include <vector>
 
-std::optional<SstDataset> buildSstDataSet(const GridInfo &grid,
-                                          const TimeAxis &time_axis) {
+std::optional<SstDataset>
+buildSstDataSet(const GridInfo &grid, const TimeAxis &time_axis, bool verbose) {
   size_t num_rows =
       std::count(grid.oceanMask.begin(), grid.oceanMask.end(), true);
   size_t num_days = time_axis.dayOffsets.size();
@@ -31,9 +32,11 @@ std::optional<SstDataset> buildSstDataSet(const GridInfo &grid,
   }
 
   for (size_t day = 0; day < time_axis.files.size(); ++day) {
-    auto sstOpt = readSstValues(time_axis.files[day], grid_size);
+    auto sstOpt = readSstValues(time_axis.files[day], grid_size, verbose);
     if (!sstOpt) {
-      std::cerr << "Failed to read " << time_axis.files[day] << ", skipping.\n";
+      if (verbose)
+        std::cerr << "Failed to read " << time_axis.files[day]
+                  << ", skipping.\n";
       continue;
     }
     const std::vector<float> &sst = *sstOpt;
@@ -47,4 +50,33 @@ std::optional<SstDataset> buildSstDataSet(const GridInfo &grid,
   }
 
   return dataset;
+}
+
+bool summarizeDataset(const SstDataset &dataset, bool verbose) {
+  const size_t num_days = dataset.time.dayOffsets.size();
+  const size_t num_rows = num_days ? dataset.matrix.size() / num_days : 0;
+
+  size_t nan_count = 0;
+  double sum = 0.0;
+  float minV = std::numeric_limits<float>::max();
+  float maxV = std::numeric_limits<float>::lowest();
+
+  for (float v : dataset.matrix) {
+    if (std::isnan(v)) {
+      ++nan_count;
+      continue;
+    }
+    sum += v;
+    minV = std::min(minV, v);
+    maxV = std::max(maxV, v);
+  }
+
+  const size_t valid = dataset.matrix.size() - nan_count;
+  if (verbose)
+    std::cout << "Rows (ocean pixels): " << num_rows << "\n"
+              << "Columns (days):      " << num_days << "\n"
+              << "NaN cells:           " << nan_count << "\n"
+              << "Min / Max / Mean:    " << minV << " / " << maxV << " / "
+              << (valid ? sum / valid : 0.0) << "\n";
+  return nan_count == 0;
 }

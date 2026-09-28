@@ -3,7 +3,7 @@
 #include <netcdf>
 #include <vector>
 
-std::optional<GridInfo> readGridInfo(const fs::path &input_path) {
+std::optional<GridInfo> readGridInfo(const fs::path &input_path, bool verbose) {
   try {
     netCDF::NcFile data_file(input_path.string(), netCDF::NcFile::read);
     netCDF::NcVar lat_var = data_file.getVar("latitude");
@@ -11,9 +11,11 @@ std::optional<GridInfo> readGridInfo(const fs::path &input_path) {
     netCDF::NcVar sst_var = data_file.getVar("analysed_sst");
 
     if (lat_var.isNull() || lon_var.isNull() || sst_var.isNull()) {
-      std::cerr << "Error [" << input_path.filename()
-                << "]: Required variables (latitude, longitude, analysed_sst) "
-                   "not found.\n";
+      if (verbose)
+        std::cerr
+            << "Error [" << input_path.filename()
+            << "]: Required variables (latitude, longitude, analysed_sst) "
+               "not found.\n";
       return std::nullopt;
     }
 
@@ -41,28 +43,31 @@ std::optional<GridInfo> readGridInfo(const fs::path &input_path) {
 
     return grid;
   } catch (const netCDF::exceptions::NcException &exception) {
-    std::cerr << "NetCDF Error [" << input_path.filename() << "]"
-              << exception.what();
+    if (verbose)
+      std::cerr << "NetCDF Error [" << input_path.filename() << "]"
+                << exception.what();
     return std::nullopt;
   }
 }
 
-std::optional<std::vector<float>> readSstValues(const fs::path &input_path,
-                                                size_t expectedSize) {
+std::optional<std::vector<float>>
+readSstValues(const fs::path &input_path, size_t expectedSize, bool verbose) {
   try {
     netCDF::NcFile data_file(input_path.string(), netCDF::NcFile::read);
     netCDF::NcVar sst_var = data_file.getVar("analysed_sst");
 
     if (sst_var.isNull()) {
-      std::cerr << "Error [" << input_path.filename()
-                << "]: analysed_sst not found.\n";
+      if (verbose)
+        std::cerr << "Error [" << input_path.filename()
+                  << "]: analysed_sst not found.\n";
       return std::nullopt;
     }
 
     size_t num_lats = data_file.getDim("latitude").getSize();
     size_t num_lons = data_file.getDim("longitude").getSize();
     if (num_lats * num_lons != expectedSize) {
-      std::cerr << "Grid size mismatch in " << input_path.filename() << "\n";
+      if (verbose)
+        std::cerr << "Grid size mismatch in " << input_path.filename() << "\n";
       return std::nullopt;
     }
 
@@ -73,22 +78,24 @@ std::optional<std::vector<float>> readSstValues(const fs::path &input_path,
     sst_var.getVar(start, count, sst.data());
     return sst;
   } catch (const netCDF::exceptions::NcException &e) {
-    std::cerr << "NetCDF Error [" << input_path.filename() << "]: " << e.what()
-              << "\n";
+    if (verbose)
+      std::cerr << "NetCDF Error [" << input_path.filename()
+                << "]: " << e.what() << "\n";
     return std::nullopt;
   }
 }
 
-std::optional<LatLon> readLatLon(const fs::path &input_path) {
+std::optional<LatLon> readLatLon(const fs::path &input_path, bool verbose) {
   try {
     netCDF::NcFile data_file(input_path.string(), netCDF::NcFile::read);
     netCDF::NcVar lat_var = data_file.getVar("latitude");
     netCDF::NcVar lon_var = data_file.getVar("longitude");
 
     if (lat_var.isNull() || lon_var.isNull()) {
-      std::cerr << "Error [" << input_path.filename()
-                << "]: Required variables (latitude, longitude) "
-                   "not found.\n";
+      if (verbose)
+        std::cerr << "Error [" << input_path.filename()
+                  << "]: Required variables (latitude, longitude) "
+                     "not found.\n";
       return std::nullopt;
     }
 
@@ -99,19 +106,22 @@ std::optional<LatLon> readLatLon(const fs::path &input_path) {
     lon_var.getVar(result.lons.data());
     return result;
   } catch (const netCDF::exceptions::NcException &exception) {
-    std::cerr << "NetCDF Error [" << input_path.filename() << "]"
-              << exception.what();
+    if (verbose)
+      std::cerr << "NetCDF Error [" << input_path.filename() << "]"
+                << exception.what();
     return std::nullopt;
   }
 }
 
-std::optional<std::vector<bool>> readOceanMask(const fs::path &input_path) {
+std::optional<std::vector<bool>> readOceanMask(const fs::path &input_path,
+                                               bool verbose) {
   try {
     netCDF::NcFile data_file(input_path.string(), netCDF::NcFile::read);
     netCDF::NcVar sst_var = data_file.getVar("analysed_sst");
     if (sst_var.isNull()) {
-      std::cerr << "Error [" << input_path.filename()
-                << "]: analysed_sst not found.\n";
+      if (verbose)
+        std::cerr << "Error [" << input_path.filename()
+                  << "]: analysed_sst not found.\n";
       return std::nullopt;
     }
 
@@ -135,8 +145,9 @@ std::optional<std::vector<bool>> readOceanMask(const fs::path &input_path) {
     return mask;
 
   } catch (const netCDF::exceptions::NcException &e) {
-    std::cerr << "NetCDF Error [" << input_path.filename() << "]: " << e.what()
-              << "\n";
+    if (verbose)
+      std::cerr << "NetCDF Error [" << input_path.filename()
+                << "]: " << e.what() << "\n";
     return std::nullopt;
   }
 }

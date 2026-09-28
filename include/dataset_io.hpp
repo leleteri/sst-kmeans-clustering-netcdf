@@ -6,7 +6,7 @@
 
 namespace fs = std::filesystem;
 
-bool writeDatasetNc(const SstDataset &dataset, const fs::path &output_path);
-bool writeDatasetCsv(const SstDataset &dataset, const fs::path &output_path);
+bool writeDatasetNc(const SstDataset &dataset, const fs::path &output_path,
+                    bool verbose);
 
 #endif

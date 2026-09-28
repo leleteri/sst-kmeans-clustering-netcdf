@@ -12,7 +12,8 @@ struct SstDataset {
   std::vector<float> matrix;
 };
 
-std::optional<SstDataset> buildSstDataSet(const GridInfo &grid,
-                                          const TimeAxis &time_axis);
+std::optional<SstDataset>
+buildSstDataSet(const GridInfo &grid, const TimeAxis &time_axis, bool verbose);
+bool summarizeDataset(const SstDataset &dataset, bool verbose);
 
 #endif

@@ -1,41 +1,65 @@
 #include "arguments.hpp"
-#include <iostream>
-#include <span>
 #include <stdexcept>
 
-Config config;
+static const std::string &requireValue(const std::vector<std::string> &args,
+                                       size_t &i) {
+  if (i + 1 >= args.size())
+    throw std::runtime_error(args[i] + "requires a value");
+  return args[++i];
+}
 
-static std::string usage =
-    "Usage: build-sst-dataset [OPTION] [PATH]\n\nFor more "
-    "information, try '-h' or '--help'";
-
-std::vector<std::string> parseArgs(int argc, char **argv) {
-  const std::span<char *> args{argv, static_cast<std::size_t>(argc)};
-  std::vector<std::string> positional;
-
-  if (args.size() < 2) {
-    throw std::runtime_error("Error: no arguments were passed");
+static size_t parseCount(const std::string &flag, const std::string &text) {
+  try {
+    return std::stoul(text);
+  } catch (const std::exception &) {
+    throw std::runtime_error(flag + " expects a number, got '" + text + "'");
   }
+}
 
-  for (size_t i = 1; i < args.size(); ++i) {
-    std::string arg = args[i];
-
+BuildOptions parseBuildArgs(const std::vector<std::string> &args) {
+  BuildOptions opts;
+  for (size_t i = 0; i < args.size(); ++i) {
+    const std::string &arg = args[i];
     if (arg == "-v" || arg == "--verbose") {
-      config.verbose = true;
+      opts.verbose = true;
     } else if (arg == "-l" || arg == "--limit") {
-      if (i + 1 >= args.size())
-        throw std::runtime_error("--limit requires a value");
-      config.limit = std::stoul(argv[++i]);
+      opts.limit = parseCount(arg, requireValue(args, i));
     } else if (arg == "-o" || arg == "--output") {
-      if (i + 1 >= args.size())
-        throw std::runtime_error("--output requires a value");
-      config.output = args[++i];
-    } else if (arg.starts_with("--")) {
-      throw std::runtime_error("Unknown argument: " + arg);
+      opts.output = requireValue(args, i);
+    } else if (arg.starts_with("-")) {
+      throw std::runtime_error("Unknown option for 'build': " + arg);
     } else {
-      positional.push_back(arg);
+      opts.inputs.push_back(arg);
     }
   }
 
-  return positional;
+  if (opts.inputs.empty())
+    throw std::runtime_error("build needs at least one file or directory");
+  return opts;
+}
+
+ClusterOptions parseClusterArgs(const std::vector<std::string> &args) {
+  ClusterOptions opts;
+  for (size_t i = 0; i < args.size(); ++i) {
+    const std::string &arg = args[i];
+    if (arg == "-v" || arg == "--verbose")
+      opts.verbose = true;
+    else if (arg == "-k" || arg == "--k")
+      opts.k = parseCount(arg, requireValue(args, i));
+    else if (arg == "--seed")
+      opts.seed = static_cast<unsigned>(parseCount(arg, requireValue(args, i)));
+    else if (arg == "-o" || arg == "--output")
+      opts.output = requireValue(args, i);
+    else if (arg.starts_with("-"))
+      throw std::runtime_error("Unknown option for 'cluster': " + arg);
+    else if (opts.input.empty())
+      opts.input = arg;
+    else
+      throw std::runtime_error("cluster takes exactly one input file");
+  }
+  if (opts.k == 0)
+    throw std::runtime_error("--k is required and must be greater than 0");
+  if (opts.input.empty())
+    throw std::runtime_error("cluster needs a dataset file");
+  return opts;
 }

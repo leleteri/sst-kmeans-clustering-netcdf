@@ -18,10 +18,11 @@ struct GridInfo {
   float fill_value;
 };
 
-std::optional<GridInfo> readGridInfo(const fs::path &input_path);
-std::optional<std::vector<float>> readSstValues(const fs::path &input_path,
-                                                size_t expected_size);
-std::optional<LatLon> readLatLon(const fs::path &input_path);
-std::optional<std::vector<bool>> readOceanMask(const fs::path &input_path);
+std::optional<GridInfo> readGridInfo(const fs::path &input_path, bool verbose);
+std::optional<std::vector<float>>
+readSstValues(const fs::path &input_path, size_t expected_size, bool verbose);
+std::optional<LatLon> readLatLon(const fs::path &input_path, bool verbose);
+std::optional<std::vector<bool>> readOceanMask(const fs::path &input_path,
+                                               bool verbose);
 
 #endif

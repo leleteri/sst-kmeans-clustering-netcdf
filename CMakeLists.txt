@@ -26,6 +26,6 @@ set_target_properties(netcdf_cxx4 PROPERTIES
 
 file(GLOB SOURCES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/*.cpp)
 
-add_executable(build-sst-dataset ${SOURCES})
-target_include_directories(build-sst-dataset PRIVATE ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(build-sst-dataset PRIVATE PkgConfig::NETCDF netcdf_cxx4)
+add_executable(sst ${SOURCES})
+target_include_directories(sst PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(sst PRIVATE PkgConfig::NETCDF netcdf_cxx4)
