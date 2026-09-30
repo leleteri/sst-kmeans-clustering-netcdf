@@ -1,7 +1,6 @@
 #include "commands.hpp"
 #include <cstdlib>
 #include <iostream>
-#include <netcdf>
 
 static void printUsage() {
   std::cerr << "Usage: sst <command> [options]\n\n"

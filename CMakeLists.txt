@@ -24,7 +24,7 @@ set_target_properties(netcdf_cxx4 PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES "${NETCDF_CXX_INCLUDE_DIR}"
 )
 
-file(GLOB SOURCES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/*.cpp)
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/*.cpp)
 
 add_executable(sst ${SOURCES})
 target_include_directories(sst PRIVATE ${CMAKE_SOURCE_DIR}/include)

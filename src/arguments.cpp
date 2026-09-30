@@ -6,7 +6,7 @@
 static const std::string &requireValue(const std::vector<std::string> &args,
                                        size_t &i) {
   if (i + 1 >= args.size())
-    throw std::runtime_error(args[i] + "requires a value");
+    throw std::runtime_error(args[i] + " requires a value");
   return args[++i];
 }
 
