@@ -16,4 +16,7 @@ build/
 data/
 *.nc
 
+# User data
 for-later/
+*.zip
+docs/
