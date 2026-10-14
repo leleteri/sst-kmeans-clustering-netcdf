@@ -4,6 +4,11 @@
 #include <string>
 #include <vector>
 
+struct InspectOptions {
+  bool verbose = false;
+  std::vector<std::string> inputs;
+};
+
 struct BuildOptions {
   bool verbose = false;
   size_t limit = 0;
@@ -19,6 +24,7 @@ struct ClusterOptions {
   std::string output = "clusters.nc";
 };
 
+InspectOptions parseInspectArgs(const std::vector<std::string> &args);
 BuildOptions parseBuildArgs(const std::vector<std::string> &args);
 ClusterOptions parseClusterArgs(const std::vector<std::string> &args);
 

@@ -5,5 +5,6 @@
 
 int runBuild(const std::vector<std::string> &args);
 int runCluster(const std::vector<std::string> &args);
+int runInspect(const std::vector<std::string> &args);
 
 #endif

@@ -18,6 +18,23 @@ static size_t parseCount(const std::string &flag, const std::string &text) {
   }
 }
 
+InspectOptions parseInspectArgs(const std::vector<std::string> &args) {
+  InspectOptions opts;
+  for (const std::string &arg : args) {
+    if (arg == "-v" || arg == "--verbose") {
+      opts.verbose = true;
+    } else if (arg.starts_with("-")) {
+      throw std::runtime_error("Unknown option for 'inspect': " + arg);
+    } else {
+      opts.inputs.push_back(arg);
+    }
+  }
+
+  if (opts.inputs.empty())
+    throw std::runtime_error("inspect needs atleast one .nc file");
+  return opts;
+}
+
 BuildOptions parseBuildArgs(const std::vector<std::string> &args) {
   BuildOptions opts;
   for (size_t i = 0; i < args.size(); ++i) {

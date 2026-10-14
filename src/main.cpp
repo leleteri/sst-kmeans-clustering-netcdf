@@ -5,6 +5,8 @@
 static void printUsage() {
   std::cerr << "Usage: sst <command> [options]\n\n"
                "Commands:\n"
+               "  inspect  print dimensions, variables, and attributes of .nc "
+               "file(s)\n"
                "  build    read .nc files and write the dataset file\n"
                "  cluster  cluster a dataset file\n";
 }
@@ -18,6 +20,8 @@ int main(int argc, char **argv) {
   const std::string command = argv[1];
   const std::vector<std::string> rest(argv + 2, argv + argc);
 
+  if (command == "inspect")
+    return runInspect(rest);
   if (command == "build")
     return runBuild(rest);
   if (command == "cluster")
