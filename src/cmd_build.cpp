@@ -3,8 +3,9 @@
 #include "build/dataset_io.hpp"
 #include "build/grid_data.hpp"
 #include "build/sst_data.hpp"
+#include <cstdio>
 #include <cstdlib>
-#include <iostream>
+#include <print>
 #include <string>
 #include <vector>
 
@@ -13,19 +14,19 @@ int runBuild(const std::vector<std::string> &args) {
   try {
     opts = parseBuildArgs(args);
   } catch (const std::exception &exception) {
-    std::cerr << "Argument error: " << exception.what() << "\n";
+    std::println(stderr, "Argument error: {}.", exception.what());
     return EXIT_FAILURE;
   }
 
   auto files = collectNcFiles(opts.inputs, opts.verbose);
   if (files.empty()) {
-    std::cerr << "No .nc files found.\n";
+    std::println(stderr, "No .nc files found.");
     return EXIT_FAILURE;
   }
   if (opts.limit > 0 && opts.limit < files.size())
     files.resize(opts.limit);
   if (opts.verbose)
-    std::cout << "Using " << files.size() << " file(s).\n";
+    std::println("Using {} file(s).", files.size());
 
   auto axis = buildTimeAxis(files, opts.verbose);
   if (!axis)
@@ -33,7 +34,7 @@ int runBuild(const std::vector<std::string> &args) {
 
   if (!validateGrid(files, opts.verbose) ||
       !validateStaticMask(files, opts.verbose)) {
-    std::cerr << "Validation Failed, aborting.\n";
+    std::println(stderr, "Validation Failed, aborting.");
     return EXIT_FAILURE;
   }
 
@@ -49,7 +50,7 @@ int runBuild(const std::vector<std::string> &args) {
   if (!writeDatasetNc(*dataset, opts.output, opts.verbose))
     return EXIT_FAILURE;
   if (opts.verbose)
-    std::cout << (valid ? "Dataset is valid.\n"
-                        : "Dataset has mising cells, see above.\n");
+    valid ? std::println("Dataset is valid.")
+          : std::println(stderr, "Dataset has missing cells, see above");
   return valid ? EXIT_SUCCESS : EXIT_FAILURE;
 }

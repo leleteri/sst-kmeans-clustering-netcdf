@@ -3,8 +3,10 @@
 #include "cluster/cluster_data.hpp"
 #include "cluster/kmeans.hpp"
 
+#include <cstdio>
 #include <cstdlib>
 #include <iostream>
+#include <print>
 #include <vector>
 
 int runCluster(const std::vector<std::string> &args) {
@@ -12,30 +14,30 @@ int runCluster(const std::vector<std::string> &args) {
   try {
     opts = parseClusterArgs(args);
   } catch (const std::exception &exception) {
-    std::cerr << "Argument error: " << exception.what() << "\n";
+    std::println(stderr, "Argument error: {}.", exception.what());
     return EXIT_FAILURE;
   }
 
   auto input = readClusterInput(opts.input);
   if (!input) {
-    std::cerr << "Failed to read dataset: " << opts.input << "\n";
+    std::println(stderr, "Failed to read dataset: {}.", opts.input);
     return EXIT_FAILURE;
   }
   if (opts.verbose)
-    std::cout << "Loaded " << input->num_rows << " pixel(s) x "
-              << input->num_cols << " day(s) from " << opts.input << "\n";
+    std::println("Loaded {} pixel(s) x {} day(s) from {}", input->num_rows,
+                 input->num_cols, opts.input);
 
   Climatology clim = buildClimatology(*input);
   if (opts.verbose)
-    std::cout << "Built climatology: " << clim.num_rows << " pixel(s) x "
-              << Climatology::num_months << " month(s)\n";
+    std::println("Built climatology: {} pixel(s) x {} month(s).", clim.num_rows,
+                 Climatology::num_months);
 
   KMeansResult result;
   try {
     result = runKMeans(clim.matrix, clim.num_rows, Climatology::num_months,
                        opts.k, opts.seed);
   } catch (const std::exception &exception) {
-    std::cerr << "Clustering failed: " << exception.what() << "\n";
+    std::println(stderr, "Clustering failed: {}.", exception.what());
     return EXIT_FAILURE;
   }
 
@@ -44,16 +46,15 @@ int runCluster(const std::vector<std::string> &args) {
     for (int label : result.labels)
       counts[static_cast<size_t>(label)] += 1;
 
-    std::cout << "Cluster sizes:\n";
+    std::println("Cluster sizes:");
     for (size_t c = 0; c < opts.k; ++c)
-      std::cout << "  cluster " << c << ": " << counts[c] << " pixel(s)\n";
+      std::println("  cluster {}:  pixel(s)", c, counts[c]);
   }
 
   // TODO: write the label map (lat, lon, cluster) and the cluster monthly
   // series once those export functions exist. For now, this only reports
   // what clustering produced -- nothing is saved to disk yet.
-  std::cout << "Clustering complete. k=" << opts.k << ", seed=" << opts.seed
-            << ".\n";
+  std::println("Clustering complete. k={}, seed={}.", opts.k, opts.seed);
 
   return EXIT_SUCCESS;
 }

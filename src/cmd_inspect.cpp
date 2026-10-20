@@ -1,16 +1,18 @@
 #include "arguments.hpp"
 #include "commands.hpp"
+#include <cstdio>
 #include <cstdlib>
 #include <exception>
 #include <filesystem>
 #include <iostream>
 #include <netcdf>
+#include <print>
 
 namespace fs = std::filesystem;
 
 namespace {
 void printAttribute(const std::string &name, const netCDF::NcVarAtt &att) {
-  std::cout << "      " << name << " = ";
+  std::print("      {} = ", name);
 
   const netCDF::NcType type = att.getType();
   const size_t len = att.getAttLength();
@@ -19,28 +21,28 @@ void printAttribute(const std::string &name, const netCDF::NcVarAtt &att) {
     if (type == netCDF::ncChar) {
       std::string value;
       att.getValues(value);
-      std::cout << "\"" << value << "\"";
+      std::print("\"{}\"", value);
     } else if (type == netCDF::ncFloat && len == 1) {
       float value;
       att.getValues(&value);
-      std::cout << value;
+      std::print("{}", value);
     } else if (type == netCDF::ncDouble && len == 1) {
       double value;
       att.getValues(&value);
-      std::cout << value;
+      std::print("{}", value);
     } else if (type == netCDF::ncInt && len == 1) {
       int value;
       att.getValues(&value);
-      std::cout << value;
+      std::print("{}", value);
     } else if (type == netCDF::ncShort && len == 1) {
       short value;
       att.getValues(&value);
-      std::cout << value;
+      std::print("{}", value);
     } else {
-      std::cout << "<" << type.getName() << ", " << len << " value(s)>";
+      std::print("<{}, {} value(s)>", type.getName(), len);
     }
   } catch (const netCDF::exceptions::NcException &exception) {
-    std::cout << "<unreadable: " << exception.what() << ">";
+    std::print("<unreadable: {}>", exception.what());
   }
 
   std::cout << "\n";
@@ -49,37 +51,38 @@ void printAttribute(const std::string &name, const netCDF::NcVarAtt &att) {
 bool inspectFile(const fs::path &path) {
   try {
     netCDF::NcFile file(path.string(), netCDF::NcFile::read);
-    std::cout << "File: " << path << "\n";
+    std::println("File: {}", path.string());
 
-    std::cout << "  Dimensions:\n";
+    std::println("  Dimensions:");
     for (const auto &[name, dim] : file.getDims())
-      std::cout << "    " << name << " = " << dim.getSize() << "\n";
+      std::println("    {} = {}", name, dim.getSize());
 
-    std::cout << "  Variables:\n";
+    std::println("  Variables:");
     for (const auto &[name, var] : file.getVars()) {
-      std::cout << "    " << name << " (" << var.getType().getName() << ")";
+      std::println("    {} ({})", name, var.getType().getName());
 
       auto dims = var.getDims();
       if (!dims.empty()) {
-        std::cout << " [";
+        std::print(" [");
         for (size_t i = 0; i < dims.size(); ++i) {
-          std::cout << dims[i].getName();
+          std::print("{}", dims[i].getSize());
           if (i + 1 < dims.size())
-            std::cout << ", ";
+            std::print(", ");
         }
-        std::cout << "]";
+        std::print("]");
       }
-      std::cout << "\n";
+      std::println();
 
       for (const auto &[attName, att] : var.getAtts())
         printAttribute(attName, att);
     }
 
-    std::cout << "\n";
+    std::println();
     return true;
 
   } catch (const netCDF::exceptions::NcException &exception) {
-    std::cerr << "NetCDF error [" << path << "]: " << exception.what() << "\n";
+    std::println(stderr, "NetCDF error [{}]: {}.", path.string(),
+                 exception.what());
     return false;
   }
 }
@@ -91,7 +94,7 @@ int runInspect(const std::vector<std::string> &args) {
   try {
     opts = parseInspectArgs(args);
   } catch (const std::exception &exception) {
-    std::cerr << "Arguments error: " << exception.what() << "\n";
+    std::println("Arguments error: {}.", exception.what());
     return EXIT_FAILURE;
   }
 

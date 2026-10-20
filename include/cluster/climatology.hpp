@@ -1,7 +1,7 @@
 #ifndef CLIMATOLOGY_HPP
 #define CLIMATOLOGY_HPP
 
-#include "cluster/cluster_data.hpp"
+#include "cluster_data.hpp"
 #include <vector>
 
 struct Climatology {

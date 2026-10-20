@@ -1,14 +1,15 @@
 #include "commands.hpp"
 #include <cstdlib>
-#include <iostream>
+#include <print>
 
 static void printUsage() {
-  std::cerr << "Usage: sst <command> [options]\n\n"
-               "Commands:\n"
-               "  inspect  print dimensions, variables, and attributes of .nc "
-               "file(s)\n"
-               "  build    read .nc files and write the dataset file\n"
-               "  cluster  cluster a dataset file\n";
+  std::println(
+      stderr,
+      "Usage: sst <command> [options]"
+      "Commands:\n"
+      "  inspect  print dimensions, variables, and attributes of .nc file(s)\n"
+      "  build    read .nc files and write the dataset file\n"
+      "  cluster  cluster a dataset file");
 }
 
 int main(int argc, char **argv) {
@@ -31,7 +32,7 @@ int main(int argc, char **argv) {
     return EXIT_SUCCESS;
   }
 
-  std::cerr << "Unknown command: " << command << ".\n";
+  std::println(stderr, "Unknown command: {}", command);
   printUsage();
   return EXIT_FAILURE;
 }

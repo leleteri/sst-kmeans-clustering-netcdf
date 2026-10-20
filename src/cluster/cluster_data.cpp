@@ -1,19 +1,20 @@
 #include "cluster/cluster_data.hpp"
-#include <chrono>
+#include <cstdio>
 #include <filesystem>
-#include <iostream>
 #include <netcdf>
 #include <optional>
+#include <print>
 
 namespace fs = std::filesystem;
 
-std::optional<ClusterInput> readClusterInput(const fs::path &path) {
+std::optional<ClusterInput> readClusterInput(const fs::path &input_path) {
   try {
-    netCDF::NcFile file(path.string(), netCDF::NcFile::read);
+    netCDF::NcFile file(input_path.string(), netCDF::NcFile::read);
     netCDF::NcDim pixel_dim = file.getDim("pixel");
     netCDF::NcDim time_dim = file.getDim("time");
     if (pixel_dim.isNull() || time_dim.isNull()) {
-      std::cerr << "Missing 'time' or 'pixel' dimension in " << path << "\n";
+      std::println(stderr, "Missing 'time' or 'pixel' dimension in {}.",
+                   input_path.string());
       return std::nullopt;
     }
 
@@ -28,7 +29,8 @@ std::optional<ClusterInput> readClusterInput(const fs::path &path) {
 
     if (lat_var.isNull() || lon_var.isNull() || time_var.isNull() ||
         sst_var.isNull()) {
-      std::cerr << "Missing expected variables in " << path << "\n";
+      std::println(stderr, "Missing expected variables in {}.",
+                   input_path.string());
       return std::nullopt;
     }
 
@@ -47,8 +49,9 @@ std::optional<ClusterInput> readClusterInput(const fs::path &path) {
     sst_var.getVar(data.sst.data());
 
     return data;
-  } catch (const netCDF::exceptions::NcException &exceptions) {
-    std::cerr << "NetCDF Error [" << path << "]" << exceptions.what() << "\n";
+  } catch (const netCDF::exceptions::NcException &exception) {
+    std::println(stderr, "NetCDF Error [{}]: {}", input_path.string(),
+                 exception.what());
     return std::nullopt;
   }
 }
