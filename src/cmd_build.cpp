@@ -49,8 +49,11 @@ int runBuild(const std::vector<std::string> &args) {
   bool valid = summarizeDataset(*dataset, opts.verbose);
   if (!writeDatasetNc(*dataset, opts.output, opts.verbose))
     return EXIT_FAILURE;
-  if (opts.verbose)
-    valid ? std::println("Dataset is valid.")
-          : std::println(stderr, "Dataset has missing cells, see above");
+  if (opts.verbose) {
+    if (valid)
+      std::println("Dataset is valid.");
+    else
+      std::println(stderr, "Dataset has missing cells, see above.");
+  }
   return valid ? EXIT_SUCCESS : EXIT_FAILURE;
 }

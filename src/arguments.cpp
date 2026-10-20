@@ -31,7 +31,7 @@ InspectOptions parseInspectArgs(const std::vector<std::string> &args) {
   }
 
   if (opts.inputs.empty())
-    throw std::runtime_error("inspect needs atleast one .nc file");
+    throw std::runtime_error("inspect needs at least one .nc file");
   return opts;
 }
 

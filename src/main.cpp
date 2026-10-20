@@ -1,11 +1,12 @@
 #include "commands.hpp"
 #include <cstdlib>
 #include <print>
+#include <vector>
 
 static void printUsage() {
   std::println(
       stderr,
-      "Usage: sst <command> [options]"
+      "Usage: sst <command> [options]\n\n"
       "Commands:\n"
       "  inspect  print dimensions, variables, and attributes of .nc file(s)\n"
       "  build    read .nc files and write the dataset file\n"
@@ -32,7 +33,7 @@ int main(int argc, char **argv) {
     return EXIT_SUCCESS;
   }
 
-  std::println(stderr, "Unknown command: {}", command);
+  std::println(stderr, "Unknown command: {}.", command);
   printUsage();
   return EXIT_FAILURE;
 }

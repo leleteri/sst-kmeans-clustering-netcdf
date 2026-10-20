@@ -20,3 +20,5 @@ data/
 for-later/
 *.zip
 docs/
+source*
+*test*

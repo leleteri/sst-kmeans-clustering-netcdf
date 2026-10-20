@@ -1,19 +1,24 @@
 cmake_minimum_required(VERSION 3.20)
-project(NetCDFConverter VERSION 1.0 LANGUAGES CXX)
+project(NetCDFConverter VERSION 1.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_EXPORT_COMPILE_COMMANDS on)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+set(CMAKE_C_COMPILER clang)
+set(CMAKE_CXX_COMPILER clang++)
 
 if(MSVC)
     add_compile_options(/W4)
 else()
-    add_compile_options(-Wall -Wextra -Wpedantic -Iinclude)
+    add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+include_directories(${CMAKE_SOURCE_DIR}/include)
+
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(NETCDF REQUIRED IMPORTED_TARGET netcdf)   # this one's fine
+pkg_check_modules(NETCDF REQUIRED IMPORTED_TARGET netcdf)
 
 find_path(NETCDF_CXX_INCLUDE_DIR NAMES ncFile.h REQUIRED)
 find_library(NETCDF_CXX_LIBRARY NAMES netcdf-cxx4 netcdf_c++4 REQUIRED)

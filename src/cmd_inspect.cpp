@@ -4,9 +4,10 @@
 #include <cstdlib>
 #include <exception>
 #include <filesystem>
-#include <iostream>
 #include <netcdf>
 #include <print>
+#include <string>
+#include <vector>
 
 namespace fs = std::filesystem;
 
@@ -45,7 +46,7 @@ void printAttribute(const std::string &name, const netCDF::NcVarAtt &att) {
     std::print("<unreadable: {}>", exception.what());
   }
 
-  std::cout << "\n";
+  std::println();
 }
 
 bool inspectFile(const fs::path &path) {
@@ -65,7 +66,7 @@ bool inspectFile(const fs::path &path) {
       if (!dims.empty()) {
         std::print(" [");
         for (size_t i = 0; i < dims.size(); ++i) {
-          std::print("{}", dims[i].getSize());
+          std::print("{}", dims[i].getName());
           if (i + 1 < dims.size())
             std::print(", ");
         }
@@ -94,7 +95,7 @@ int runInspect(const std::vector<std::string> &args) {
   try {
     opts = parseInspectArgs(args);
   } catch (const std::exception &exception) {
-    std::println("Arguments error: {}.", exception.what());
+    std::println(stderr, "Arguments error: {}.", exception.what());
     return EXIT_FAILURE;
   }
 

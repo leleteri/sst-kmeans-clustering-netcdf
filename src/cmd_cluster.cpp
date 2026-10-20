@@ -5,9 +5,9 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <iostream>
 #include <print>
 #include <vector>
+#include <string>
 
 int runCluster(const std::vector<std::string> &args) {
   ClusterOptions opts;
@@ -48,7 +48,7 @@ int runCluster(const std::vector<std::string> &args) {
 
     std::println("Cluster sizes:");
     for (size_t c = 0; c < opts.k; ++c)
-      std::println("  cluster {}:  pixel(s)", c, counts[c]);
+      std::println("  cluster {}: {} pixel(s)", c, counts[c]);
   }
 
   // TODO: write the label map (lat, lon, cluster) and the cluster monthly
