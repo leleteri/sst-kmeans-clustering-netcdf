@@ -1,13 +1,12 @@
 cmake_minimum_required(VERSION 3.20)
-project(NetCDFConverter VERSION 1.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-set(CMAKE_C_COMPILER clang)
 set(CMAKE_CXX_COMPILER clang++)
+
+project(SST_Analysis VERSION 1.0 LANGUAGES CXX)
 
 if(MSVC)
     add_compile_options(/W4)

@@ -63,7 +63,7 @@ ClusterOptions parseClusterArgs(const std::vector<std::string> &args) {
     const std::string &arg = args[i];
     if (arg == "-v" || arg == "--verbose")
       opts.verbose = true;
-    else if (arg == "-k" || arg == "--k")
+    else if (arg == "-k" || arg == "--k-value")
       opts.k = parseCount(arg, requireValue(args, i));
     else if (arg == "--seed")
       opts.seed = static_cast<unsigned>(parseCount(arg, requireValue(args, i)));
@@ -77,7 +77,8 @@ ClusterOptions parseClusterArgs(const std::vector<std::string> &args) {
       throw std::runtime_error("cluster takes exactly one input file");
   }
   if (opts.k == 0)
-    throw std::runtime_error("--k is required and must be greater than 0");
+    throw std::runtime_error(
+        "--k-value is required and must be greater than 0");
   if (opts.input.empty())
     throw std::runtime_error("cluster needs a dataset file");
   return opts;
