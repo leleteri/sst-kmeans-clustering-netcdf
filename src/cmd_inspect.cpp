@@ -60,7 +60,7 @@ bool inspectFile(const fs::path &path) {
 
     std::println("  Variables:");
     for (const auto &[name, var] : file.getVars()) {
-      std::println("    {} ({})", name, var.getType().getName());
+      std::print("    {} ({})", name, var.getType().getName());
 
       auto dims = var.getDims();
       if (!dims.empty()) {

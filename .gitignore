@@ -16,6 +16,9 @@ build/
 data/
 *.nc
 
+# opencode temp dir
+opencode/
+
 # User data
 for-later/
 *.zip
