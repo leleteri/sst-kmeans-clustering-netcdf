@@ -13,9 +13,10 @@
 namespace fs = std::filesystem;
 
 std::optional<ClusterInput> readClusterInput(const fs::path &input_path) {
-  const std::string file_name = input_path.string();
+  const std::string path_string = input_path.string();
+  const std::string file_name = input_path.filename().string();
   try {
-    netCDF::NcFile file(file_name, netCDF::NcFile::read);
+    netCDF::NcFile file(path_string, netCDF::NcFile::read);
     netCDF::NcDim pixel_dim = file.getDim("pixel");
     netCDF::NcDim time_dim = file.getDim("time");
     if (pixel_dim.isNull() || time_dim.isNull()) {
@@ -51,6 +52,20 @@ std::optional<ClusterInput> readClusterInput(const fs::path &input_path) {
     std::vector<int> raw_days(data.num_cols);
     time_var.getVar(raw_days.data());
     data.days.assign(raw_days.begin(), raw_days.end());
+
+    // The climatology is derived from the calendar month of every time step,
+    // so the time variable has to count days.
+    netCDF::NcVarAtt units_att = time_var.getAtt("units");
+    if (!units_att.isNull()) {
+      std::string units;
+      units_att.getValues(units);
+      if (!units.starts_with("days since")) {
+        std::println(stderr,
+                     "Warning: {}: time units are '{}', but the climatology "
+                     "expects days.",
+                     file_name, units);
+      }
+    }
 
     auto sst = readSstValues(file, file_name, {data.num_rows, data.num_cols});
     if (!sst)

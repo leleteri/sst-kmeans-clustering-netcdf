@@ -70,6 +70,8 @@ int runCluster(const std::vector<std::string> &args) {
   if (opts.verbose) {
     std::vector<size_t> counts(opts.k, 0);
     for (const int label : result.labels) {
+      if (label < 0 || static_cast<size_t>(label) >= opts.k)
+        continue;
       counts[static_cast<size_t>(label)] += 1;
     }
 

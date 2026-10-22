@@ -9,8 +9,8 @@ devenv.local.yaml
 # pre-commit
 .pre-commit-config.yaml
 
-# cmake generated
-build/
+# cmake generated (top level only, so that src/build and include/build stay tracked)
+/build/
 
 # NC data
 data/

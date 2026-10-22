@@ -2,16 +2,13 @@
 #define CLIMATOLOGY_HPP
 
 #include "cluster_data.hpp"
+#include <cstddef>
 #include <vector>
 
 struct Climatology {
   std::vector<float> matrix;
-  size_t num_rows;
+  size_t num_rows = 0;
   static constexpr size_t num_months = 12;
-
-  float at(size_t row, unsigned month /* 1-12 */) const {
-    return matrix[row * num_months + (month - 1)];
-  }
 };
 
 Climatology buildClimatology(const ClusterInput &input);

@@ -1,6 +1,9 @@
 #include "arguments.hpp"
+#include <charconv>
+#include <limits>
 #include <stdexcept>
 #include <string>
+#include <system_error>
 #include <vector>
 
 namespace {
@@ -12,12 +15,31 @@ const std::string &requireValue(const std::vector<std::string> &args,
   return args[++i];
 }
 
+// Parses a non-negative decimal number. The whole token must be consumed and
+// a negative value is rejected, so that "-1" cannot silently wrap around.
 size_t parseCount(const std::string &flag, const std::string &text) {
-  try {
-    return std::stoul(text);
-  } catch (const std::exception &) {
+  if (text.empty())
+    throw std::runtime_error(flag + " expects a number, got an empty value");
+
+  size_t parsed = 0;
+  const char *begin = text.data();
+  const char *end = text.data() + text.size();
+  const std::from_chars_result result = std::from_chars(begin, end, parsed);
+  if (result.ec == std::errc::invalid_argument ||
+      result.ec == std::errc::result_out_of_range || result.ptr != end) {
     throw std::runtime_error(flag + " expects a number, got '" + text + "'");
   }
+  return parsed;
+}
+
+// Parses a number that has to fit in an unsigned int.
+unsigned parseUnsigned(const std::string &flag, const std::string &text) {
+  const size_t parsed = parseCount(flag, text);
+  if (parsed > std::numeric_limits<unsigned>::max())
+    throw std::runtime_error(
+        flag + " expects a value between 0 and " +
+        std::to_string(std::numeric_limits<unsigned>::max()));
+  return static_cast<unsigned>(parsed);
 }
 
 } // namespace
@@ -70,7 +92,7 @@ ClusterOptions parseClusterArgs(const std::vector<std::string> &args) {
     else if (arg == "-k" || arg == "--k-value")
       opts.k = parseCount(arg, requireValue(args, i));
     else if (arg == "--seed")
-      opts.seed = static_cast<unsigned>(parseCount(arg, requireValue(args, i)));
+      opts.seed = parseUnsigned(arg, requireValue(args, i));
     else if (arg == "-o" || arg == "--output")
       opts.output = requireValue(args, i);
     else if (arg.starts_with("-"))

@@ -1,5 +1,6 @@
 #include "arguments.hpp"
 #include "commands.hpp"
+#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <exception>
@@ -12,7 +13,7 @@
 namespace fs = std::filesystem;
 
 namespace {
-void printAttribute(const std::string &name, const netCDF::NcVarAtt &att) {
+void printAttribute(const std::string &name, const netCDF::NcAtt &att) {
   std::print("      {} = ", name);
 
   const netCDF::NcType type = att.getType();
@@ -49,7 +50,17 @@ void printAttribute(const std::string &name, const netCDF::NcVarAtt &att) {
   std::println();
 }
 
-bool inspectFile(const fs::path &path) {
+void printGlobalAttributes(const netCDF::NcFile &file) {
+  const auto atts = file.getAtts();
+  if (atts.empty())
+    return;
+
+  std::println("  Global attributes:");
+  for (const auto &[name, att] : atts)
+    printAttribute(name, att);
+}
+
+bool inspectFile(const fs::path &path, bool verbose) {
   try {
     netCDF::NcFile file(path.string(), netCDF::NcFile::read);
     std::println("File: {}", path.string());
@@ -78,6 +89,9 @@ bool inspectFile(const fs::path &path) {
         printAttribute(attName, att);
     }
 
+    if (verbose)
+      printGlobalAttributes(file);
+
     std::println();
     return true;
 
@@ -95,13 +109,13 @@ int runInspect(const std::vector<std::string> &args) {
   try {
     opts = parseInspectArgs(args);
   } catch (const std::exception &exception) {
-    std::println(stderr, "Error: Arguments error: {}.", exception.what());
+    std::println(stderr, "Error: Argument error: {}.", exception.what());
     return EXIT_FAILURE;
   }
 
   bool allOk = true;
   for (const auto &input : opts.inputs) {
-    if (!inspectFile(input))
+    if (!inspectFile(input, opts.verbose))
       allOk = false;
   }
 

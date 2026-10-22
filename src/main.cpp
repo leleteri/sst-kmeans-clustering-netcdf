@@ -1,6 +1,7 @@
 #include "commands.hpp"
 #include <cstdlib>
 #include <print>
+#include <string>
 #include <vector>
 
 namespace {
@@ -12,7 +13,11 @@ void printUsage() {
       "Commands:\n"
       "  inspect  print dimensions, variables, and attributes of .nc file(s)\n"
       "  build    read .nc files and write the dataset file\n"
-      "  cluster  cluster a dataset file");
+      "  cluster  cluster a dataset file.\n\n"
+      "Exit codes:\n"
+      "  0  success\n"
+      "  1  error\n"
+      "  2  the dataset was written but contains missing cells");
 }
 
 } // namespace

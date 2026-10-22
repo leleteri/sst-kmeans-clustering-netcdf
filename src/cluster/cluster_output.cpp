@@ -1,4 +1,5 @@
 #include "cluster/cluster_output.hpp"
+#include "cluster/climatology.hpp"
 
 #include <algorithm>
 #include <cstddef>
@@ -18,12 +19,14 @@ bool writeClusterNc(const ClusterInput &input, const KMeansResult &result,
   const std::string file_name = output_path.string();
   const size_t num_rows = result.labels.size();
 
-  if (k == 0 || result.centers.empty() || result.centers.size() % k != 0) {
+  if (k == 0 || result.centers.size() != k * Climatology::num_months) {
     std::println(stderr,
-                 "Error: cannot write clusters: centers do not match k");
+                 "Error: cannot write clusters: centers do not match k x {} "
+                 "months",
+                 Climatology::num_months);
     return false;
   }
-  const size_t num_months = result.centers.size() / k;
+  const size_t num_months = Climatology::num_months;
 
   if (num_rows == 0 || input.coords.lats.size() != num_rows ||
       input.coords.lons.size() != num_rows) {
@@ -71,7 +74,11 @@ bool writeClusterNc(const ClusterInput &input, const KMeansResult &result,
 
     id_var.putAtt("long_name", "pixel id (row number in the dataset, from 1)");
     lat_var.putAtt("units", "degrees_north");
+    lat_var.putAtt("standard_name", "latitude");
+    lat_var.putAtt("axis", "Y");
     lon_var.putAtt("units", "degrees_east");
+    lon_var.putAtt("standard_name", "longitude");
+    lon_var.putAtt("axis", "X");
     cluster_var.putAtt("long_name", "cluster of the pixel (0 to k-1)");
     centroid_var.putAtt("long_name", "cluster index");
     month_var.putAtt("long_name", "calendar month (1 = January)");

@@ -4,12 +4,15 @@
 #include "build/filename_parse.hpp"
 #include "build/grid_data.hpp"
 #include "build/sst_data.hpp"
+#include "commands.hpp"
 
-#include <cstdio>
 #include <cstdlib>
 #include <print>
 #include <string>
 #include <vector>
+
+// Exit code used when the dataset was written but is not complete.
+constexpr int kExitIncomplete = 2;
 
 int runBuild(const std::vector<std::string> &args) {
   BuildOptions opts;
@@ -34,28 +37,35 @@ int runBuild(const std::vector<std::string> &args) {
   if (!axis)
     return EXIT_FAILURE;
 
-  if (!validateGrid(files, opts.verbose) ||
-      !validateStaticMask(files, opts.verbose)) {
+  if (!validateGrid(axis->files, opts.verbose)) {
     std::println(stderr, "Error: Validation Failed, aborting.");
     return EXIT_FAILURE;
   }
 
-  auto grid = readGridInfo(files.front());
+  auto grid = readGridInfo(axis->files.front());
   if (!grid)
     return EXIT_FAILURE;
 
-  auto dataset = buildSstDataSet(*grid, *axis);
-  if (!dataset)
+  // The ocean mask of every file is checked while the data is read, so that
+  // each file is only opened and read once.
+  auto dataset = buildSstDataSet(*grid, *axis, opts.verbose);
+  if (!dataset) {
+    std::println(stderr, "Error: Validation Failed, aborting.");
     return EXIT_FAILURE;
+  }
 
-  bool valid = summarizeDataset(*dataset, opts.verbose);
+  const bool valid = summarizeDataset(*dataset, opts.verbose);
   if (!writeDatasetNc(*dataset, opts.output, opts.verbose))
     return EXIT_FAILURE;
+
   if (valid) {
     std::println("Dataset is valid.");
-  } else {
-    std::println(stderr, "Warning: Dataset has missing cells{}",
-                 opts.verbose ? ", see above." : ".");
+    return EXIT_SUCCESS;
   }
-  return valid ? EXIT_SUCCESS : EXIT_FAILURE;
+
+  std::println(stderr,
+               "Warning: Dataset has missing cells, it was written to {} "
+               "anyway{}",
+               opts.output, opts.verbose ? ", see above." : ".");
+  return kExitIncomplete;
 }

@@ -1,6 +1,7 @@
 #ifndef ARGUMENTS_HPP
 #define ARGUMENTS_HPP
 
+#include <cstddef>
 #include <string>
 #include <vector>
 
