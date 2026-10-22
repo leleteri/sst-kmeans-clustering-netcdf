@@ -1,8 +1,10 @@
 #include "arguments.hpp"
+#include "build/build_output.hpp"
 #include "build/data_validate.hpp"
-#include "build/dataset_io.hpp"
+#include "build/filename_parse.hpp"
 #include "build/grid_data.hpp"
 #include "build/sst_data.hpp"
+
 #include <cstdio>
 #include <cstdlib>
 #include <print>
@@ -14,13 +16,13 @@ int runBuild(const std::vector<std::string> &args) {
   try {
     opts = parseBuildArgs(args);
   } catch (const std::exception &exception) {
-    std::println(stderr, "Argument error: {}.", exception.what());
+    std::println(stderr, "Error: Argument error: {}.", exception.what());
     return EXIT_FAILURE;
   }
 
-  auto files = collectNcFiles(opts.inputs, opts.verbose);
+  auto files = collectNcFiles(opts.inputs);
   if (files.empty()) {
-    std::println(stderr, "No .nc files found.");
+    std::println(stderr, "Error: No .nc files found.");
     return EXIT_FAILURE;
   }
   if (opts.limit > 0 && opts.limit < files.size())
@@ -34,26 +36,26 @@ int runBuild(const std::vector<std::string> &args) {
 
   if (!validateGrid(files, opts.verbose) ||
       !validateStaticMask(files, opts.verbose)) {
-    std::println(stderr, "Validation Failed, aborting.");
+    std::println(stderr, "Error: Validation Failed, aborting.");
     return EXIT_FAILURE;
   }
 
-  auto grid = readGridInfo(files.front(), opts.verbose);
+  auto grid = readGridInfo(files.front());
   if (!grid)
     return EXIT_FAILURE;
 
-  auto dataset = buildSstDataSet(*grid, *axis, opts.verbose);
+  auto dataset = buildSstDataSet(*grid, *axis);
   if (!dataset)
     return EXIT_FAILURE;
 
   bool valid = summarizeDataset(*dataset, opts.verbose);
   if (!writeDatasetNc(*dataset, opts.output, opts.verbose))
     return EXIT_FAILURE;
-  if (opts.verbose) {
-    if (valid)
-      std::println("Dataset is valid.");
-    else
-      std::println(stderr, "Dataset has missing cells, see above.");
+  if (valid) {
+    std::println("Dataset is valid.");
+  } else {
+    std::println(stderr, "Warning: Dataset has missing cells{}",
+                 opts.verbose ? ", see above." : ".");
   }
   return valid ? EXIT_SUCCESS : EXIT_FAILURE;
 }

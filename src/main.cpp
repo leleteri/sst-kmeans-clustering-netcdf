@@ -3,7 +3,9 @@
 #include <print>
 #include <vector>
 
-static void printUsage() {
+namespace {
+
+void printUsage() {
   std::println(
       stderr,
       "Usage: sst <command> [options]\n\n"
@@ -12,6 +14,8 @@ static void printUsage() {
       "  build    read .nc files and write the dataset file\n"
       "  cluster  cluster a dataset file");
 }
+
+} // namespace
 
 int main(int argc, char **argv) {
   if (argc < 2) {

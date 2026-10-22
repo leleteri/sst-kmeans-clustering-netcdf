@@ -1,20 +1,33 @@
 #include "cluster/cluster_data.hpp"
+#include "map_data.hpp"
+
 #include <cstdio>
 #include <filesystem>
 #include <netcdf>
 #include <optional>
 #include <print>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace fs = std::filesystem;
 
 std::optional<ClusterInput> readClusterInput(const fs::path &input_path) {
+  const std::string file_name = input_path.string();
   try {
-    netCDF::NcFile file(input_path.string(), netCDF::NcFile::read);
+    netCDF::NcFile file(file_name, netCDF::NcFile::read);
     netCDF::NcDim pixel_dim = file.getDim("pixel");
     netCDF::NcDim time_dim = file.getDim("time");
     if (pixel_dim.isNull() || time_dim.isNull()) {
-      std::println(stderr, "Missing 'time' or 'pixel' dimension in {}.",
-                   input_path.string());
+      std::println(stderr, "Error: Missing 'time' or 'pixel' dimension in {}.",
+                   file_name);
+      return std::nullopt;
+    }
+
+    netCDF::NcVar time_var = file.getVar("time");
+    if (time_var.isNull()) {
+      std::println(stderr, "Error: Missing expected variables in {}.",
+                   file_name);
       return std::nullopt;
     }
 
@@ -22,35 +35,31 @@ std::optional<ClusterInput> readClusterInput(const fs::path &input_path) {
     data.num_rows = pixel_dim.getSize();
     data.num_cols = time_dim.getSize();
 
-    netCDF::NcVar lat_var = file.getVar("latitude");
-    netCDF::NcVar lon_var = file.getVar("longitude");
-    netCDF::NcVar time_var = file.getVar("time");
-    netCDF::NcVar sst_var = file.getVar("sst");
-
-    if (lat_var.isNull() || lon_var.isNull() || time_var.isNull() ||
-        sst_var.isNull()) {
-      std::println(stderr, "Missing expected variables in {}.",
-                   input_path.string());
+    auto coords = readLatLon(file, file_name);
+    if (!coords)
+      return std::nullopt;
+    if (coords->lats.size() != data.num_rows ||
+        coords->lons.size() != data.num_rows) {
+      std::println(
+          stderr,
+          "Error: Latitude/longitude size does not match 'pixel' in {}.",
+          file_name);
       return std::nullopt;
     }
-
-    data.lats.resize(data.num_rows);
-    data.lons.resize(data.num_rows);
-    data.days.resize(data.num_cols);
-    data.sst.resize(data.num_rows * data.num_cols);
-
-    lat_var.getVar(data.lats.data());
-    lon_var.getVar(data.lons.data());
+    data.coords = std::move(*coords);
 
     std::vector<int> raw_days(data.num_cols);
     time_var.getVar(raw_days.data());
-    std::copy(raw_days.begin(), raw_days.end(), data.days.data());
+    data.days.assign(raw_days.begin(), raw_days.end());
 
-    sst_var.getVar(data.sst.data());
+    auto sst = readSstValues(file, file_name, {data.num_rows, data.num_cols});
+    if (!sst)
+      return std::nullopt;
+    data.sst = std::move(*sst);
 
     return data;
   } catch (const netCDF::exceptions::NcException &exception) {
-    std::println(stderr, "NetCDF Error [{}]: {}", input_path.string(),
+    std::println(stderr, "Error: NetCDF Error [{}]: {}", file_name,
                  exception.what());
     return std::nullopt;
   }

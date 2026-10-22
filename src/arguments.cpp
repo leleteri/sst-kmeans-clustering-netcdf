@@ -3,20 +3,24 @@
 #include <string>
 #include <vector>
 
-static const std::string &requireValue(const std::vector<std::string> &args,
-                                       size_t &i) {
+namespace {
+
+const std::string &requireValue(const std::vector<std::string> &args,
+                                size_t &i) {
   if (i + 1 >= args.size())
     throw std::runtime_error(args[i] + " requires a value");
   return args[++i];
 }
 
-static size_t parseCount(const std::string &flag, const std::string &text) {
+size_t parseCount(const std::string &flag, const std::string &text) {
   try {
     return std::stoul(text);
   } catch (const std::exception &) {
     throw std::runtime_error(flag + " expects a number, got '" + text + "'");
   }
 }
+
+} // namespace
 
 InspectOptions parseInspectArgs(const std::vector<std::string> &args) {
   InspectOptions opts;

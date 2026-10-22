@@ -1,13 +1,14 @@
 #ifndef CLUSTER_DATA_HPP
 #define CLUSTER_DATA_HPP
 
+#include "map_data.hpp"
+
 #include <filesystem>
 #include <optional>
 #include <vector>
 
 struct ClusterInput {
-  std::vector<double> lats;
-  std::vector<double> lons;
+  LatLon coords;
   std::vector<long> days;
   std::vector<float> sst;
   size_t num_rows;

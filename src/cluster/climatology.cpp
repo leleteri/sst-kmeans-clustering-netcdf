@@ -7,11 +7,15 @@
 
 namespace df = std::chrono;
 
-static unsigned monthOf(long days_since_epoch) {
+namespace {
+
+unsigned monthOf(long days_since_epoch) {
   df::sys_days sys_days{df::days{days_since_epoch}};
   df::year_month_day dateYMD{sys_days};
   return static_cast<unsigned>(dateYMD.month());
 }
+
+} // namespace
 
 Climatology buildClimatology(const ClusterInput &input) {
   std::vector<unsigned> column_month(input.num_cols);

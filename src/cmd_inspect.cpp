@@ -82,7 +82,7 @@ bool inspectFile(const fs::path &path) {
     return true;
 
   } catch (const netCDF::exceptions::NcException &exception) {
-    std::println(stderr, "NetCDF error [{}]: {}.", path.string(),
+    std::println(stderr, "Error: {}: NetCDF: {}.", path.string(),
                  exception.what());
     return false;
   }
@@ -95,7 +95,7 @@ int runInspect(const std::vector<std::string> &args) {
   try {
     opts = parseInspectArgs(args);
   } catch (const std::exception &exception) {
-    std::println(stderr, "Arguments error: {}.", exception.what());
+    std::println(stderr, "Error: Arguments error: {}.", exception.what());
     return EXIT_FAILURE;
   }
 

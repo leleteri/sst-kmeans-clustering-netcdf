@@ -22,6 +22,8 @@ opencode/
 # User data
 for-later/
 *.zip
+*.tar
+*.tar.*
 docs/
 source*
 *test*
