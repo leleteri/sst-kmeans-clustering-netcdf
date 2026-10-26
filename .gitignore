@@ -24,6 +24,9 @@ for-later/
 *.zip
 *.tar
 *.tar.*
-docs/
-source*
-*test*
+/docs/
+/source*
+/*test*
+/clusters/
+/clusters/*
+/*.sh
