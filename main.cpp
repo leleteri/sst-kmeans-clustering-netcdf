@@ -1,5 +1,4 @@
-#include <print>
-
+import std;
 import arguments;
 import build_args;
 import grid_info;
@@ -7,11 +6,14 @@ import data_validate;
 import collect_files;
 import dataset;
 import time_axis;
+import build_output;
+
+namespace fs = std::filesystem;
 
 namespace {
 
 constexpr int printHelp() {
-  std::println(stderr, "usage: build/sst <subcommand> [options] [file]");
+  std::println(std::cerr, "usage: build/sst <subcommand> [options] [file]");
   return 1;
 }
 
@@ -27,7 +29,7 @@ int main(int argc, char **argv) {
 
     auto files = collectNcFiles(args.inputs());
     if (files.empty()) {
-      std::println(stderr, "error: no .nc files found.");
+      std::println(std::cerr, "error: no .nc files found.");
       return 1;
     }
 
@@ -40,7 +42,7 @@ int main(int argc, char **argv) {
       return 1;
 
     if (!validateGrids(time_axis.files())) {
-      std::println(stderr, "error: validation failed, aborting.");
+      std::println(std::cerr, "error: validation failed, aborting.");
       return 1;
     }
 
@@ -50,10 +52,17 @@ int main(int argc, char **argv) {
 
     Dataset dataset(grid, time_axis, build_args.verbose());
     if (!dataset.summarize(build_args.verbose()))
-      std::println(stderr, "warning: dataset contains NaN cells.");
+      std::println(std::cerr, "warning: dataset contains NaN cells.");
+
+    fs::path output_path("sst_dataset.nc");
+    if (!writeDatasetNc(dataset, grid, time_axis, output_path)) {
+      std::println(std::cerr, "error:");
+      return printHelp();
+    }
+
   } catch (const std::exception &e) {
-    std::println(stderr, "error: {}", e.what());
-    std::println(stderr);
+    std::println(std::cerr, "error: {}", e.what());
+    std::println(std::cerr);
     return printHelp();
   }
   return 0;

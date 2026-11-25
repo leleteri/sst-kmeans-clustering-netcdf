@@ -1,12 +1,6 @@
-module;
-
-#include <charconv>
-#include <format>
-#include <optional>
-#include <string_view>
-#include <vector>
-
 export module build_args;
+
+import std;
 
 export class BuildArgs {
 public:
@@ -21,18 +15,18 @@ public:
   }
 
   const bool &verbose() const noexcept { return m_verbose; }
-  const size_t &limit() const noexcept { return m_limit; }
+  const std::size_t &limit() const noexcept { return m_limit; }
   const std::string_view &output() const noexcept { return m_output; }
   const std::vector<std::string_view> &inputs() { return m_inputs; }
 
 private:
   bool m_verbose = false;
-  size_t m_limit = 0;
+  std::size_t m_limit = 0;
   std::string_view m_output = "sst_dataset.nc";
   std::vector<std::string_view> m_inputs;
 
-  static std::optional<size_t> to_size(std::string_view sv) {
-    size_t result = 0;
+  static std::optional<std::size_t> to_size(std::string_view sv) {
+    std::size_t result = 0;
     auto [ptr, ec] = std::from_chars(sv.data(), sv.data() + sv.size(), result);
 
     if (ec == std::errc() && ptr == sv.data() + sv.size()) {
@@ -44,7 +38,7 @@ private:
   void build(std::vector<std::string_view> inputs,
              std::vector<std::string_view> opts) {
     m_inputs = std::move(inputs);
-    for (size_t i = 0; i < opts.size(); ++i) {
+    for (std::size_t i = 0; i < opts.size(); ++i) {
       std::string_view opt = opts[i];
       auto eq_pos = opt.find("=");
       if (eq_pos != std::string_view::npos) {

@@ -1,12 +1,8 @@
 module;
 
-#include <filesystem>
-#include <print>
-#include <string_view>
-#include <vector>
-
 export module collect_files;
 
+import std;
 import arguments;
 
 namespace fs = std::filesystem;
@@ -23,12 +19,12 @@ collectNcFiles(const std::vector<std::string_view> &args) {
       }
     } else if (fs::is_regular_file(p)) {
       if (p.extension() != ".nc") {
-        std::println(stderr, "warning: {} does not have a .nc extension.",
+        std::println(std::cerr, "warning: {} does not have a .nc extension.",
                      p.string());
       }
       files.push_back(p);
     } else {
-      std::println(stderr, "warning: skipping (not a file or directory): {}",
+      std::println(std::cerr, "warning: skipping (not a file or directory): {}",
                    p.string());
     }
   }

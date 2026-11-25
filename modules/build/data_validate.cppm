@@ -1,13 +1,6 @@
-module;
-
-#include <algorithm>
-#include <cmath>
-#include <filesystem>
-#include <print>
-#include <vector>
-
 export module data_validate;
 
+import std;
 import grid_info;
 
 namespace fs = std::filesystem;
@@ -18,7 +11,7 @@ bool sameAxis(const std::vector<double> &a, const std::vector<double> &b,
               double tolerance) {
   if (a.size() != b.size())
     return false;
-  for (size_t i = 0; i < a.size(); ++i) {
+  for (std::size_t i = 0; i < a.size(); ++i) {
     if (std::isnan(a[i]) || std::isnan(b[i]))
       return false;
     if (std::abs(a[i] - b[i]) > tolerance)
@@ -40,13 +33,13 @@ export bool validateGrids(const std::vector<fs::path> &files,
 
   bool grid_match = true;
   bool mask_static = true;
-  size_t mask_diffs = 0;
-  size_t files_checked = 0;
+  std::size_t mask_diffs = 0;
+  std::size_t files_checked = 0;
 
-  for (size_t i = 1; i < files.size(); ++i) {
+  for (std::size_t i = 1; i < files.size(); ++i) {
     GridInfo grid(files[i]);
     if (!grid) {
-      std::println(stderr, "warning: skipping unreadable file: {}.",
+      std::println(std::cerr, "warning: skipping unreadable file: {}.",
                    files[i].string());
       grid_match = false;
       continue;
@@ -54,12 +47,12 @@ export bool validateGrids(const std::vector<fs::path> &files,
     ++files_checked;
 
     if (!sameAxis(baseline.latitude(), grid.latitude(), tolerance)) {
-      std::println(stderr, "warning: {}: latitude differs from baseline.",
+      std::println(std::cerr, "warning: {}: latitude differs from baseline.",
                    files[i].string());
       grid_match = false;
     }
     if (!sameAxis(baseline.longitude(), grid.longitude(), tolerance)) {
-      std::println(stderr, "warning: {}: longitude differs from baseline.",
+      std::println(std::cerr, "warning: {}: longitude differs from baseline.",
                    files[i].string());
       grid_match = false;
     }
@@ -67,18 +60,18 @@ export bool validateGrids(const std::vector<fs::path> &files,
     if (baseline.oceanMask().size() != grid.oceanMask().size()) {
       mask_diffs =
           std::max(baseline.oceanMask().size(), grid.oceanMask().size());
-      std::println(stderr,
+      std::println(std::cerr,
                    "warning: {}: {} pixel(s) differ from the baseline ocean "
                    "mask.",
                    files[i].string(), mask_diffs);
       mask_static = false;
     } else {
-      for (size_t j = 0; j < baseline.oceanMask().size(); ++j) {
+      for (std::size_t j = 0; j < baseline.oceanMask().size(); ++j) {
         if (baseline.oceanMask()[j] != grid.oceanMask()[j])
           ++mask_diffs;
       }
       if (mask_diffs > 0) {
-        std::println(stderr,
+        std::println(std::cerr,
                      "warning: {}: {} pixel(s) differ from the baseline ocean "
                      "mask.",
                      files[i].string(), mask_diffs);
@@ -92,13 +85,14 @@ export bool validateGrids(const std::vector<fs::path> &files,
   if (grid_match)
     std::println("grid is identical across all files.");
   else
-    std::println(stderr,
+    std::println(std::cerr,
                  "warning: grid is NOT identical, see differences above.");
 
   if (mask_static)
     std::println("mask is static across all files");
   else
-    std::println(stderr, "warning: mask is NOT static, see differences above");
+    std::println(std::cerr,
+                 "warning: mask is NOT static, see differences above");
 
   return (grid_match && mask_static);
 }

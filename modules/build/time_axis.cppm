@@ -1,16 +1,6 @@
-module;
-
-#include <charconv>
-#include <chrono>
-#include <filesystem>
-#include <format>
-#include <print>
-#include <string_view>
-#include <system_error>
-#include <utility>
-#include <vector>
-
 export module time_axis;
+
+import std;
 
 namespace fs = std::filesystem;
 namespace df = std::chrono;
@@ -50,8 +40,8 @@ private:
       m_day_offsets.push_back(offset);
     }
 
-    size_t gaps = 0;
-    for (size_t i = 1; i < m_day_offsets.size(); ++i) {
+    std::size_t gaps = 0;
+    for (std::size_t i = 1; i < m_day_offsets.size(); ++i) {
       const long delta = m_day_offsets[i] - m_day_offsets[i - 1];
       if (delta == 0) {
         throw std::runtime_error(std::format("duplicate date: {} and {}.",
@@ -59,7 +49,7 @@ private:
                                              m_files[i].string()));
       }
       if (delta != 1) {
-        std::println(stderr, "warning: date gap: {} -> {} ({} days).",
+        std::println(std::cerr, "warning: date gap: {} -> {} ({} days).",
                      m_files[i - 1].string(), m_files[i].string(), delta);
         ++gaps;
       }

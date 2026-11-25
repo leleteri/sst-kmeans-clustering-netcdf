@@ -1,12 +1,9 @@
 module;
-
-#include <filesystem>
-#include <format>
 #include <netcdf>
-#include <string_view>
-#include <vector>
 
 export module grid_info;
+
+import std;
 
 namespace fs = std::filesystem;
 
@@ -64,8 +61,8 @@ private:
       dimsSizeMatch(file_name, lon_dims, 1, lon_var_name);
       dimsSizeMatch(file_name, sst_dims, 3, sst_var_name);
 
-      size_t num_lat = lat_dims[0].getSize();
-      size_t num_lon = lon_dims[0].getSize();
+      std::size_t num_lat = lat_dims[0].getSize();
+      std::size_t num_lon = lon_dims[0].getSize();
 
       m_latitude.resize(num_lat);
       m_longitude.resize(num_lon);
@@ -88,13 +85,13 @@ private:
                         sst_var_name));
       }
 
-      const std::vector<size_t> start = {0, 0, 0};
-      const std::vector<size_t> count = {1, num_lat, num_lon};
+      const std::vector<std::size_t> start = {0, 0, 0};
+      const std::vector<std::size_t> count = {1, num_lat, num_lon};
       std::vector<float> values(count[0] * count[1] * count[2]);
       sst_var.getVar(start, count, values.data());
 
       m_ocean_mask.resize(values.size());
-      for (size_t i = 0; i < values.size(); ++i) {
+      for (std::size_t i = 0; i < values.size(); ++i) {
         m_ocean_mask[i] = values[i] != m_fill_value;
       }
     } catch (const netCDF::exceptions::NcException &e) {
@@ -122,7 +119,7 @@ private:
 
   static void dimsSizeMatch(std::string_view file_name,
                             const std::vector<netCDF::NcDim> &dims,
-                            const size_t &expected_size,
+                            const std::size_t &expected_size,
                             std::string_view var_name) {
     if (dims.size() != expected_size) {
       throw std::runtime_error(

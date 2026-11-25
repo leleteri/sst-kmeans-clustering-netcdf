@@ -1,12 +1,6 @@
-module;
-
-#include <format>
-#include <span>
-#include <stdexcept>
-#include <string_view>
-#include <vector>
-
 export module arguments;
+
+import std;
 
 export class Arguments {
 public:
