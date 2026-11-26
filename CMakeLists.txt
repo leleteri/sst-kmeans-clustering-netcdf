@@ -19,12 +19,6 @@ endif()
 
 project(SST_Analysis VERSION 1.0 LANGUAGES CXX)
 
-if(MSVC)
-    add_compile_options(/W4)
-else()
-    add_compile_options(-Wall -Wextra -Wpedantic)
-endif()
-
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(NETCDF REQUIRED IMPORTED_TARGET netcdf)
 
@@ -43,3 +37,5 @@ add_executable(sst ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
 target_sources(sst PRIVATE FILE_SET CXX_MODULES FILES ${SOURCES})
 target_compile_features(sst PRIVATE cxx_std_23)
 target_link_libraries(sst PRIVATE PkgConfig::NETCDF netcdf_cxx4)
+target_compile_options(sst PRIVATE -Wall -Wextra -Wpedantic)
+

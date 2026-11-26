@@ -2,54 +2,54 @@ export module arguments;
 
 import std;
 
+export class ArgumentError : public std::invalid_argument {
+public:
+  using std::invalid_argument::invalid_argument;
+};
+
+export enum class Subcommand { Build, Cluster, Inspect, Help };
+
 export class Arguments {
 public:
-  Arguments() = default;
-  explicit Arguments(int argc, char **argv) {
-    parseArgs(argc, argv);
+  Arguments(int argc, char **argv) {
+    const std::span<char *> raw(argv, static_cast<std::size_t>(argc));
+    if (raw.size() < 2)
+      throw ArgumentError("no subcommand specified");
 
-    if (m_subcommand.empty() && !m_inputs.empty()) {
-      throw std::invalid_argument(
-          std::format("unknown subcommand '{}'", m_inputs.front()));
-    } else if ((m_subcommand == BuildOpts || m_subcommand == ClusterOpts) &&
-               m_inputs.empty()) {
-      throw std::invalid_argument(
-          std::format("'{}' need atleast 1 input file", m_subcommand));
-    } else if (m_subcommand.empty() && m_inputs.empty()) {
-      throw std::invalid_argument(std::format("no subcommand specified"));
+    const std::string_view first = raw[1];
+    const auto subcommand = parseSubcommand(first);
+    if (!subcommand)
+      throw ArgumentError(std::format("unknown subcommand '{}'", first));
+    m_subcommand = *subcommand;
+
+    for (const char *arg : raw.subspan(2)) {
+      const std::string_view text = arg;
+      (text.starts_with('-') ? m_options : m_inputs).push_back(text);
     }
   }
 
-  std::string_view subcommand() const { return m_subcommand; }
-  const std::vector<std::string_view> &options() const { return m_options; }
-  const std::vector<std::string_view> &inputs() const { return m_inputs; }
+  Subcommand subcommand() const noexcept { return m_subcommand; }
+  const std::vector<std::string_view> &options() const noexcept {
+    return m_options;
+  }
+  const std::vector<std::string_view> &inputs() const noexcept {
+    return m_inputs;
+  }
 
 private:
-  std::string_view m_subcommand;
+  Subcommand m_subcommand = Subcommand::Help;
   std::vector<std::string_view> m_options;
   std::vector<std::string_view> m_inputs;
 
-  static constexpr std::string_view BuildOpts = "build";
-  static constexpr std::string_view ClusterOpts = "cluster";
-
-  void parseArgs(int argc, char **argv) {
-    if (argc <= 1)
-      return;
-
-    std::span<char *> raw_cmd(argv, argc);
-    auto raw_args = raw_cmd.subspan(1);
-
-    for (auto arg_ptr : raw_args) {
-      std::string_view arg(arg_ptr);
-
-      if (arg.starts_with("-")) {
-        m_options.push_back(arg);
-      } else if (m_subcommand.empty() &&
-                 (arg == BuildOpts || arg == ClusterOpts)) {
-        m_subcommand = arg;
-      } else {
-        m_inputs.push_back(arg);
-      }
-    }
+  static std::optional<Subcommand> parseSubcommand(std::string_view name) {
+    if (name == "build")
+      return Subcommand::Build;
+    if (name == "cluster")
+      return Subcommand::Cluster;
+    if (name == "inspect")
+      return Subcommand::Inspect;
+    if (name == "help" || name == "-h" || name == "--help")
+      return Subcommand::Help;
+    return std::nullopt;
   }
 };

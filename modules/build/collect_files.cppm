@@ -1,36 +1,39 @@
-module;
-
-export module collect_files;
+export module build.collect_files;
 
 import std;
-import arguments;
 
 namespace fs = std::filesystem;
 
 export std::vector<fs::path>
-collectNcFiles(const std::vector<std::string_view> &args) {
+collectNcFiles(std::span<const std::string> inputs) {
   std::vector<fs::path> files;
-  for (const auto &arg : args) {
-    fs::path p{arg};
-    if (fs::is_directory(p)) {
-      for (const auto &entry : fs::directory_iterator(p)) {
-        if (entry.path().extension() == ".nc")
+
+  for (const std::string &input : inputs) {
+    const fs::path path = fs::path(input).lexically_normal();
+
+    if (fs::is_directory(path)) {
+      for (const auto &entry : fs::directory_iterator(path)) {
+        if (entry.is_regular_file() && entry.path().extension() == ".nc")
           files.push_back(entry.path());
       }
-    } else if (fs::is_regular_file(p)) {
-      if (p.extension() != ".nc") {
+    } else if (fs::is_regular_file(path)) {
+      if (path.extension() != ".nc") {
         std::println(std::cerr, "warning: {} does not have a .nc extension.",
-                     p.string());
+                     path.string());
       }
-      files.push_back(p);
+      files.push_back(path);
     } else {
       std::println(std::cerr, "warning: skipping (not a file or directory): {}",
-                   p.string());
+                   path.string());
     }
   }
-  std::sort(files.begin(), files.end(),
-            [](const fs::path &a, const fs::path &b) {
-              return a.filename() < b.filename();
-            });
+
+  std::ranges::sort(files, [](const fs::path &a, const fs::path &b) {
+    if (a.filename() != b.filename())
+      return a.filename() < b.filename();
+    return a < b;
+  });
+  const auto duplicates = std::ranges::unique(files);
+  files.erase(duplicates.begin(), duplicates.end());
   return files;
 }

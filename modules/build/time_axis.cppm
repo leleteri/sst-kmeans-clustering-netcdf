@@ -1,48 +1,48 @@
-export module time_axis;
+export module build.time_axis;
 
 import std;
 
 namespace fs = std::filesystem;
-namespace df = std::chrono;
+namespace chrono = std::chrono;
 
 export class TimeAxis {
 public:
   TimeAxis() = default;
-  explicit TimeAxis(std::vector<fs::path> &files) { buildTimeAxis(files); }
+  explicit TimeAxis(std::vector<fs::path> files, bool verbose = false) {
+    build(std::move(files), verbose);
+  }
 
-  const std::vector<fs::path> &files() const { return m_files; }
-  const std::vector<long> &dayOffsets() const { return m_day_offsets; }
+  const std::vector<fs::path> &files() const noexcept { return m_files; }
+  const std::vector<int> &dayOffsets() const noexcept { return m_day_offsets; }
 
-  explicit operator bool() const {
-    return (!m_files.empty() || !m_day_offsets.empty());
+  explicit operator bool() const noexcept {
+    return !m_files.empty() && m_files.size() == m_day_offsets.size();
   }
 
 private:
   std::vector<fs::path> m_files;
-  std::vector<long> m_day_offsets;
+  std::vector<int> m_day_offsets;
 
-  void buildTimeAxis(const std::vector<fs::path> &files) {
-    std::vector<std::pair<fs::path, long>> entries;
+  void build(std::vector<fs::path> files, bool verbose) {
+    std::vector<std::pair<fs::path, int>> entries;
     entries.reserve(files.size());
-
-    for (const auto &file : files) {
-      entries.emplace_back(file, daysSinceEpoch(parseDateFromFilename(file)));
+    for (fs::path &file : files) {
+      const int offset = daysSinceEpoch(parseDate(file));
+      entries.emplace_back(std::move(file), offset);
     }
 
-    std::stable_sort(
-        entries.begin(), entries.end(),
-        [](const auto &a, const auto &b) { return a.second < b.second; });
+    std::ranges::stable_sort(entries, {}, &std::pair<fs::path, int>::second);
 
     m_files.reserve(entries.size());
     m_day_offsets.reserve(entries.size());
-    for (const auto &[file, offset] : entries) {
-      m_files.push_back(file);
+    for (auto &[file, offset] : entries) {
+      m_files.push_back(std::move(file));
       m_day_offsets.push_back(offset);
     }
 
     std::size_t gaps = 0;
     for (std::size_t i = 1; i < m_day_offsets.size(); ++i) {
-      const long delta = m_day_offsets[i] - m_day_offsets[i - 1];
+      const int delta = m_day_offsets[i] - m_day_offsets[i - 1];
       if (delta == 0) {
         throw std::runtime_error(std::format("duplicate date: {} and {}.",
                                              m_files[i - 1].string(),
@@ -55,59 +55,55 @@ private:
       }
     }
 
-    std::println("time axis: {} files, {} irregular step(s).", m_files.size(),
-                 gaps);
+    if (verbose) {
+      std::println("time axis: {} file(s), {} irregular step(s).",
+                   m_files.size(), gaps);
+    }
   }
 
-  static int parse_field(std::string_view text, std::size_t from,
-                         std::size_t to)
-
-  {
-    if (from > to || to > text.size())
-      throw std::runtime_error("out of bound");
-
-    std::string_view field = text.substr(from, to - from);
-
-    int value{};
-    auto [ptr, ec] =
+  static int parseField(std::string_view digits, std::size_t from,
+                        std::size_t length) {
+    const std::string_view field = digits.substr(from, length);
+    int value = 0;
+    const auto [ptr, ec] =
         std::from_chars(field.data(), field.data() + field.size(), value);
-
-    if (ec != std::errc{} || ptr != field.data() + field.size())
-      throw std::runtime_error("parsing error");
+    if (ec != std::errc{} || ptr != field.data() + field.size()) {
+      throw std::runtime_error(std::format("'{}' is not a number", field));
+    }
     return value;
   }
 
-  static df::year_month_day parseDateFromFilename(const fs::path &path) {
-    const auto &raw_stem = path.stem().string();
-    std::string_view stem = raw_stem;
+  static chrono::year_month_day parseDate(const fs::path &path) {
+    const std::string name = path.filename().string();
+    const std::string stem = path.stem().string();
     if (stem.size() < 8) {
-      throw std::runtime_error(
-          std::format("{}: file name format mismatch\n\tformat: sst_YYYMMDD.nc",
-                      path.filename().string()));
-    }
-
-    std::string_view grep_date = stem.substr(stem.size() - 8);
-    int year = parse_field(grep_date, 0, 4);
-    int month = parse_field(grep_date, 4, 6);
-    int day = parse_field(grep_date, 6, 8);
-
-    if (month < 1 || month > 12 || day < 1 || day > 31) {
       throw std::runtime_error(std::format(
-          "{}: invalid date '{}'", path.filename().string(), grep_date));
+          "{}: file name must end with YYYYMMDD, e.g. sst_20240131.nc", name));
     }
 
-    const df::year_month_day date{df::year{year},
-                                  df::month{static_cast<unsigned>(month)},
-                                  df::day{static_cast<unsigned>(day)}};
-    if (!date.ok()) {
-      std::runtime_error(std::format("{}: invalid date '{}'",
-                                     path.filename().string(), grep_date));
-    }
+    const std::string_view digits =
+        std::string_view(stem).substr(stem.size() - 8);
+    try {
+      const int year = parseField(digits, 0, 4);
+      const int month = parseField(digits, 4, 2);
+      const int day = parseField(digits, 6, 2);
 
-    return date;
+      if (month < 1 || month > 12 || day < 1 || day > 31)
+        throw std::runtime_error("out of range");
+
+      const chrono::year_month_day date{
+          chrono::year{year}, chrono::month{static_cast<unsigned>(month)},
+          chrono::day{static_cast<unsigned>(day)}};
+      if (!date.ok())
+        throw std::runtime_error("no such day");
+      return date;
+    } catch (const std::runtime_error &e) {
+      throw std::runtime_error(
+          std::format("{}: invalid date '{}' ({})", name, digits, e.what()));
+    }
   }
 
-  static long daysSinceEpoch(const df::year_month_day &year_month_day) {
-    return df::sys_days{year_month_day}.time_since_epoch().count();
+  static int daysSinceEpoch(const chrono::year_month_day &date) {
+    return static_cast<int>(chrono::sys_days{date}.time_since_epoch().count());
   }
 };
